@@ -8,6 +8,7 @@ async function bootstrap() {
     .setTitle('Im')
     .setVersion('1.0.0')
     .setDescription('一个聊天的后台服务')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
