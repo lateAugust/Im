@@ -23,11 +23,15 @@
   "dependencies": {
     "@nestjs/common": "^7.0.0",
     "@nestjs/core": "^7.0.0",
+    "@nestjs/jwt": "^7.2.0",
+    "@nestjs/passport": "^7.1.0",
     "@nestjs/platform-express": "^7.0.0",
     "@nestjs/swagger": "^4.6.1",
     "@nestjs/typeorm": "^7.1.4",
     "@types/mysql": "^2.15.15",
+    "@types/passport-jwt": "^3.0.3",
     "mysql": "^2.18.1",
+    "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.5.4",
@@ -75,7 +79,9 @@
     ],
     "moduleNameMapper": {
       "libs/db/(.*)": "<rootDir>/libs/db/src/$1",
-      "libs/db": "<rootDir>/libs/db/src"
+      "libs/db": "<rootDir>/libs/db/src",
+      "libs/auth/(.*)": "<rootDir>/libs/auth/src/$1",
+      "libs/auth": "<rootDir>/libs/auth/src"
     }
   }
 }

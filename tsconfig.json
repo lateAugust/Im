@@ -17,6 +17,12 @@
       ],
       "libs/db/*": [
         "libs/db/src/*"
+      ],
+      "libs/auth": [
+        "libs/auth/src"
+      ],
+      "libs/auth/*": [
+        "libs/auth/src/*"
       ]
     }
   }
