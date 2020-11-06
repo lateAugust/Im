@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { UsersRegister } from '../types/users';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateUsersRegisterDto } from './dto/users.dto';
 import { ReturnBody } from '../utils/return-body';
 import { UsersService } from './users.service';
 
@@ -12,8 +12,9 @@ export class UsersController {
   getHello(): string {
     return this.usersService.getHello();
   }
-  @Post()
-  async register(@Body() body: UsersRegister): Promise<ReturnBody<{}>> {
+  @Post('/register')
+  @ApiOperation({ summary: '用户注册接口' })
+  async register(@Body() body: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     return this.usersService.register(body);
   }
 }

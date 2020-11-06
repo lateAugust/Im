@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsersRegister } from '../types/users';
+import { CreateUsersRegisterDto } from './dto/users.dto';
 import { ReturnBody } from '../utils/return-body';
 import { Users } from './users.entity';
 
@@ -11,11 +11,11 @@ export class UsersService {
   getHello(): string {
     return 'hello users';
   }
-  async register({ username, password, confirm_password }: UsersRegister): Promise<ReturnBody<{}>> {
+  async register({ username, password, confirm_password }: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     let validate = [
-      { value: password, key: 'password' },
-      { value: username, key: 'username' },
-      { value: confirm_password, key: 'confirm_password' }
+      { value: username, key: '用户名' },
+      { value: password, key: '密码' },
+      { value: confirm_password, key: '确认密码' }
     ];
     for (let item of validate) {
       if (!item.value) {
@@ -27,11 +27,21 @@ export class UsersService {
     }
     try {
       let result = await this.usersRepository.save({ username, password });
-      return { status: false, statusCode: 200, message: '注册成功', data: {} };
+      return { status: false, statusCode: 200, message: '注册成功', data: result };
     } catch (e) {
-      if (e.errno === 1062) {
-        return { status: false, statusCode: 400, message: '用户名已存在', data: {} };
+      let message = '';
+      switch (e.errno) {
+        case 1062:
+          message = '用户名已存在';
+          break;
+        case 1364:
+          message = '缺少必填字段';
+          break;
+        default:
+          message = '未知错误';
+          break;
       }
+      return { status: false, statusCode: 400, message, data: {} };
     }
   }
 }
