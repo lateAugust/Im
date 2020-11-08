@@ -6,4 +6,5 @@ export interface ReturnBody<T> {
   page?: number;
   page_size?: number;
   data: T;
+  token?: string;
 }
