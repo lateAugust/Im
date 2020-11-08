@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateUsersRegisterDto, CreateUsersBaseDto } from './dto/users.dto';
+import { Body, Controller, Get, Param, Post, UseGuards, Request } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateUsersRegisterDto, CreateUsersBaseDto, GetUserInfoIdDto } from './dto/users.dto';
 import { ReturnBody } from '../utils/return-body';
 import { UsersService } from './users.service';
 import { Users } from './users.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { RequestWidth } from 'types/express.extends';
 
 @ApiTags('users')
 @Controller('users')
@@ -22,5 +24,12 @@ export class UsersController {
   @ApiOperation({ summary: '用户登录接口' })
   async login(@Body() body: CreateUsersBaseDto): Promise<ReturnBody<CreateUsersBaseDto | {}>> {
     return this.usersService.login(body);
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @Get('/info/:id?')
+  @ApiOperation({ summary: '获取用户信息' })
+  async getUserInfo(@Param('id') id: GetUserInfoIdDto, @Request() req: RequestWidth): Promise<ReturnBody<Users | {}>> {
+    return this.usersService.getUserInfo(Number(id), req);
   }
 }

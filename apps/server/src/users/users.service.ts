@@ -5,6 +5,7 @@ import { CreateUsersBaseDto, CreateUsersRegisterDto } from './dto/users.dto';
 import { ReturnBody } from '../utils/return-body';
 import { Users } from './users.entity';
 import { AuthService } from 'libs/auth';
+import { RequestWidth } from 'types/express.extends';
 
 @Injectable()
 export class UsersService {
@@ -68,6 +69,20 @@ export class UsersService {
       return { status: false, statusCode: 400, message: '用户名或密码错误', data: {} };
     } catch (error) {
       return { status: true, statusCode: 400, message: '登录失败', data: {} };
+    }
+  }
+  async getUserInfo(id: number, req: RequestWidth): Promise<ReturnBody<Users | {}>> {
+    id = id || req.user.sub;
+    try {
+      let result = await this.usersRepository.findOne({ id });
+      if (result) {
+        Reflect.deleteProperty(result, 'password');
+        Reflect.deleteProperty(result, 'update_at');
+        return { statusCode: 200, status: true, message: '获取成功', data: result };
+      }
+      return { statusCode: 403, status: false, message: '查无此人', data: {} };
+    } catch (err) {
+      return { statusCode: 400, status: false, message: '查找失败, 请重试', data: {} };
     }
   }
 }
