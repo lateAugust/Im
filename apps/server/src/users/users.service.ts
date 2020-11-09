@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUsersBaseDto, CreateUsersRegisterDto } from './dto/users.dto';
+import { CreateUsersBaseDto, CreateUsersRegisterDto, SetUserInfoDto } from './dto/users.dto';
 import { ReturnBody } from '../utils/return-body';
 import { Users } from './users.entity';
 import { AuthService } from 'libs/auth';
@@ -83,6 +83,20 @@ export class UsersService {
       return { statusCode: 403, status: false, message: '查无此人', data: {} };
     } catch (err) {
       return { statusCode: 400, status: false, message: '查找失败, 请重试', data: {} };
+    }
+  }
+  async setUserInfo(id: number, query: SetUserInfoDto): Promise<ReturnBody<Users | {}>> {
+    try {
+      let userData = await this.usersRepository.findOne({ id });
+      let result = await this.usersRepository.save(Object.assign({}, userData, query));
+      Reflect.deleteProperty(result, 'password');
+      return { statusCode: 200, status: true, message: '修改成功', data: result };
+    } catch (e) {
+      let message = '修改失败';
+      if (e.errno === 1062) {
+        message = '用户名已存在';
+      }
+      return { statusCode: 400, status: false, message, data: {} };
     }
   }
 }
