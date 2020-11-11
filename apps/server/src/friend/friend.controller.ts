@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FriendService } from './friend.service';
+import { ApplyDto } from './dto/friend.dto';
 
 @ApiTags('friend')
 @Controller('friend')
@@ -10,4 +11,6 @@ export class FriendController {
   getHello(): string {
     return this.friendService.getHello();
   }
+  @Post()
+  createApply(@Body() apply: ApplyDto) {}
 }
