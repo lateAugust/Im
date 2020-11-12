@@ -1,9 +1,14 @@
 import { Body, Controller, Get, Param, Post, UseGuards, Request, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateUsersRegisterDto, CreateUsersBaseDto, GetUserInfoIdDto, SetUserInfoDto } from './dto/users.dto';
-import { ReturnBody } from '../utils/return-body';
+import {
+  CreateUsersRegisterDto,
+  CreateUsersBaseDto,
+  GetUserInfoIdDto,
+  SetUserInfoDto
+} from '../../dto/users/users.dto';
+import { ReturnBody } from '../../utils/return-body';
 import { UsersService } from './users.service';
-import { Users } from './users.entity';
+import { Users } from '../../emtites/users/users.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestWidth } from 'types/express.extends';
 

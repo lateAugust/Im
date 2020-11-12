@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUsersBaseDto, CreateUsersRegisterDto, SetUserInfoDto } from './dto/users.dto';
-import { ReturnBody } from '../utils/return-body';
-import { Users } from './users.entity';
+import { CreateUsersBaseDto, CreateUsersRegisterDto, SetUserInfoDto } from '../../dto/users/users.dto';
+import { ReturnBody } from '../../utils/return-body';
+import { Users } from '../../emtites/users/users.entity';
 import { AuthService } from 'libs/auth';
 import { RequestWidth } from 'types/express.extends';
 

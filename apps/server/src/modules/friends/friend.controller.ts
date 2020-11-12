@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FriendService } from './friend.service';
-import { ApplyDto } from './dto/friend.dto';
+import { ApplyDto } from '../../dto/friends/friends.dto';
 
 @ApiTags('friend')
 @Controller('friend')
