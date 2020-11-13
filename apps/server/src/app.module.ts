@@ -3,7 +3,7 @@ import { DbModule } from 'libs/db';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
-import { FriendModule } from './modules/friends/friend.module';
+import { FriendModule } from './modules/friends/friends.module';
 import { MessageModule } from './modules/message/message.module';
 
 @Module({

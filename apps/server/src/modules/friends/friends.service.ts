@@ -7,7 +7,7 @@ import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
 
 @Injectable()
-export class FriendService {
+export class FriendsService {
   constructor(
     @InjectRepository(Proposers) private readonly proposersRepository: Repository<Proposers>,
     @InjectRepository(Users) private readonly usersRepositotry: Repository<Users>
