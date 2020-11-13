@@ -37,3 +37,12 @@ export class ApplyDto {
   @ApiProperty({ required: true, enum: ['underReview', 'reject', 'agreement'] })
   apply_status: string;
 }
+
+export class FriendsSearchingDto {
+  @ApiProperty({ required: true })
+  keywords: string;
+  @ApiProperty({ required: false, default: 1 })
+  page: number;
+  @ApiProperty({ required: false, default: 10 })
+  page_size: number;
+}
