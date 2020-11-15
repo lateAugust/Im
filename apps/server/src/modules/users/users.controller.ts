@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Post, UseGuards, Request, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  Request,
+  Put,
+  Query,
+  UsePipes,
+  ValidationPipe
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CreateUsersRegisterDto,
@@ -11,6 +23,7 @@ import { UsersService } from './users.service';
 import { Users } from '../../emtites/users/users.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestWidth } from 'types/express.extends';
+import { ValidatePipe } from './users.validate.pipe';
 
 @ApiTags('users')
 @Controller('users')
@@ -21,11 +34,13 @@ export class UsersController {
     return this.usersService.getHello();
   }
   @Post('/register')
+  @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '用户注册接口' })
   async register(@Body() body: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     return this.usersService.register(body);
   }
   @Post('/login')
+  @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '用户登录接口' })
   async login(@Body() body: CreateUsersBaseDto): Promise<ReturnBody<CreateUsersBaseDto | {}>> {
     return this.usersService.login(body);
@@ -40,6 +55,7 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Put('/info')
+  @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '修改用户信息' })
   async setUserInfo(@Request() req: RequestWidth, @Query() query: SetUserInfoDto): Promise<ReturnBody<Users | {}>> {
     return this.usersService.setUserInfo(Number(req.user.sub), query);
