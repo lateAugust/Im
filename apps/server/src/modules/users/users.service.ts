@@ -16,20 +16,7 @@ export class UsersService {
   getHello(): string {
     return 'hello users';
   }
-  async register({ username, password, confirm_password }: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
-    let validate = [
-      { value: username, key: '用户名' },
-      { value: password, key: '密码' },
-      { value: confirm_password, key: '确认密码' }
-    ];
-    for (let item of validate) {
-      if (!item.value) {
-        return { status: false, statusCode: 400, message: item.key + '是必须的', data: {} };
-      }
-    }
-    if (confirm_password !== password) {
-      return { status: false, statusCode: 400, message: '两次密码不一致', data: {} };
-    }
+  async register({ username, password }: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     try {
       let result = await this.usersRepository.save({ username, password });
       return { status: false, statusCode: 200, message: '注册成功', data: result };
