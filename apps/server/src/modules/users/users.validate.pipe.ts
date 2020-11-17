@@ -2,6 +2,9 @@ import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 
+// 注意验证装饰器的书写顺序 (执行顺序, 由上往下, 则相应的提示变为由下往上)
+// MinLength -> MaxLength -> IsString -> IsNotEmpty
+
 @Injectable()
 export class ValidatePipe implements PipeTransform<any> {
   async transform(value: any, { metatype }: ArgumentMetadata) {
@@ -12,6 +15,9 @@ export class ValidatePipe implements PipeTransform<any> {
     const errors = await validate(object);
     if (errors.length > 0) {
       throw new BadRequestException(Object.values(errors[0].constraints)[0]);
+    }
+    if (value.password && value.confirm_password && value.password !== value.confirm_password) {
+      throw new BadRequestException('两次密码不一致');
     }
     return value;
   }
