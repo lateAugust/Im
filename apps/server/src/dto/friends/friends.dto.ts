@@ -10,6 +10,7 @@ import {
   IsUrl,
   IsMobilePhone
 } from 'class-validator';
+import { PagesDto } from '../common/pages.dto';
 
 class User {
   @ApiProperty({ required: true })
@@ -93,14 +94,8 @@ export class ApplyDto {
   apply_status: string;
 }
 
-export class FriendsSearchingDto {
+export class FriendsSearchingDto extends PagesDto {
   @ApiProperty({ required: false })
   @IsString({ message: 'keywords字段类型错误, 只能是字符串' })
   keywords: string;
-
-  @ApiProperty({ required: false, default: 1 })
-  page: number;
-
-  @ApiProperty({ required: false, default: 10 })
-  page_size: number;
 }
