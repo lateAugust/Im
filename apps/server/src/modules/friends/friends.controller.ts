@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, UseGuards, Request, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService } from './friends.service';
 import { ApplyDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
@@ -6,6 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
 import { Users } from '../../emtites/users/users.entity';
 import { RequestWidth } from 'types/express.extends';
+import { ValidatePipe } from './friends.validate.pipe';
 
 @ApiTags('friends')
 @ApiBearerAuth()
@@ -18,11 +19,12 @@ export class FriendsController {
   friendsList(): string {
     return this.friendsService.getHello();
   }
-  @Get('/seaching')
+  @Get('/searching')
   @ApiOperation({ summary: '检索可添加的用户' })
   @ApiQuery({ name: 'keywords', description: '关键字' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
   @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
+  @UsePipes(new ValidatePipe())
   async searching(@Query() query: FriendsSearchingDto, @Request() req: RequestWidth): Promise<ReturnBody<Users | []>> {
     return this.friendsService.searching(query, req.user.sub);
   }
