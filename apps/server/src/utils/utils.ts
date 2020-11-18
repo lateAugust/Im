@@ -14,3 +14,7 @@ export function updateValues(object: object): string {
   }
   return values.substr(0, values.length - 1);
 }
+
+export function pagination(page: number, page_size: number): string {
+  return ` ${Math.max(0, page - 1) * page_size},${page_size}`;
+}
