@@ -94,7 +94,7 @@ export class ApplyDto {
 }
 
 export class FriendsSearchingDto {
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false })
   @IsString({ message: 'keywords字段类型错误, 只能是字符串' })
   keywords: string;
 
