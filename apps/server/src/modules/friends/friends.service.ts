@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PagesDto } from '../../dto/common/pages.dto';
 import { ApplyDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
 import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
+import { pagination } from '../../utils/utils';
 
 @Injectable()
 export class FriendsService {
@@ -50,6 +52,21 @@ export class FriendsService {
       return { message: '添加成功', status: true, statusCode: 200, data: {} };
     } catch (e) {
       return { message: '添加失败', status: false, statusCode: 500, data: e };
+    }
+  }
+  async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers | []>> {
+    page = page || 1;
+    page_size = page_size || 10;
+    let sql =
+      `SELECT SQL_CALC_FOUND_ROWS * FROM proposers 
+    WHERE apply_id = ${id} AND 'status'<>'agreement' ORDER BY id LIMIT` + pagination(page, page_size);
+    try {
+      let result = await this.proposersRepository.query(sql);
+      let totalResult = await this.usersRepositotry.query('SELECT FOUND_ROWS()');
+      let total = totalResult[0]['FOUND_ROWS()'] * 1;
+      return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
+    } catch (err) {
+      return { status: true, statusCode: 200, message: '获取成功', data: err };
     }
   }
 }
