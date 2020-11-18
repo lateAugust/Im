@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import { ApplyDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
 import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
@@ -34,5 +34,22 @@ export class FriendsService {
     let totalResult = await this.usersRepositotry.query('SELECT FOUND_ROWS()');
     let total = totalResult[0]['FOUND_ROWS()'] * 1;
     return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
+  }
+  async createApply(params: ApplyDto): Promise<ReturnBody<{}>> {
+    try {
+      if (params.proposers_id) {
+        let data = await this.proposersRepository.findOne({ id: params.proposers_id });
+        let result = await this.proposersRepository.save(Object.assign({}, data, { message: params.message }));
+      } else {
+        let targetUser = JSON.stringify(params.target_user);
+        let applyUser = JSON.stringify(params.apply_user);
+        let result = await this.proposersRepository.save(
+          Object.assign({}, params, { target_user: targetUser, apply_user: applyUser })
+        );
+      }
+      return { message: '添加成功', status: true, statusCode: 200, data: {} };
+    } catch (e) {
+      return { message: '添加失败', status: false, statusCode: 500, data: e };
+    }
   }
 }

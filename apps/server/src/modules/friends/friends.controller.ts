@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService } from './friends.service';
 import { ApplyDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
@@ -30,7 +30,11 @@ export class FriendsController {
   }
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })
-  createApply(@Body() apply: ApplyDto) {}
+  @UsePipes(new ValidatePipe())
+  @HttpCode(200)
+  createApply(@Body() apply: ApplyDto): Promise<ReturnBody<{}>> {
+    return this.friendsService.createApply(apply);
+  }
   @Put('/apply')
   @ApiOperation({ summary: '同意/拒绝申请' })
   auditApply() {}
