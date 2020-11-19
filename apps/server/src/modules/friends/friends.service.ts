@@ -66,7 +66,7 @@ export class FriendsService {
       let total = totalResult[0]['FOUND_ROWS()'] * 1;
       return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
     } catch (err) {
-      return { status: true, statusCode: 200, message: '获取成功', data: err };
+      return { status: false, statusCode: 500, message: '获取失败', data: err };
     }
   }
 }
