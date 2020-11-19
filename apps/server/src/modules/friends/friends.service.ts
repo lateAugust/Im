@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PagesDto } from '../../dto/common/pages.dto';
-import { ApplyDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import { Friends } from '../../emtites/friends/friends.emtity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
 import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
@@ -12,7 +13,8 @@ import { pagination } from '../../utils/utils';
 export class FriendsService {
   constructor(
     @InjectRepository(Proposers) private readonly proposersRepository: Repository<Proposers>,
-    @InjectRepository(Users) private readonly usersRepositotry: Repository<Users>
+    @InjectRepository(Users) private readonly usersRepository: Repository<Users>,
+    @InjectRepository(Friends) private readonly friendsRepository: Repository<Friends>
   ) {}
   getHello(): string {
     return 'hello friend';
@@ -32,8 +34,8 @@ export class FriendsService {
       sql += ` WHERE (instr(users.username, '${keywords}') > 0 OR instr(users.mobile, '${keywords}') > 0) 
       ORDER BY users.id LIMIT ${Math.max(0, page - 1) * page_size},${page_size}`;
     }
-    let result = await this.usersRepositotry.query(sql);
-    let totalResult = await this.usersRepositotry.query('SELECT FOUND_ROWS()');
+    let result = await this.usersRepository.query(sql);
+    let totalResult = await this.usersRepository.query('SELECT FOUND_ROWS()');
     let total = totalResult[0]['FOUND_ROWS()'] * 1;
     return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
   }
@@ -62,11 +64,42 @@ export class FriendsService {
     WHERE apply_id = ${id} AND 'status'<>'agreement' ORDER BY id LIMIT` + pagination(page, page_size);
     try {
       let result = await this.proposersRepository.query(sql);
-      let totalResult = await this.usersRepositotry.query('SELECT FOUND_ROWS()');
+      let totalResult = await this.usersRepository.query('SELECT FOUND_ROWS()');
       let total = totalResult[0]['FOUND_ROWS()'] * 1;
       return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
     } catch (err) {
       return { status: false, statusCode: 500, message: '获取失败', data: err };
     }
+  }
+  async auditApply(query: FriendsAuditDto): Promise<ReturnBody<{}>> {
+    let message = '';
+    try {
+      switch (query.apply_status) {
+        case 'agreement':
+          message = '添加成功';
+          await this.proposersRepository.query(
+            `UPDATE proposers SET apply_status=agreement WHERE id=${query.proposers_id}`
+          );
+          Reflect.deleteProperty(query, 'proposers_id');
+          Reflect.deleteProperty(query, 'message');
+          Reflect.deleteProperty(query, 'apply_status');
+          await this.friendsRepository.save(
+            Object.assign({}, query, {
+              target_user: JSON.stringify(query.target_user),
+              relation_user: JSON.stringify(query.relation_user)
+            })
+          );
+          break;
+        case 'reject':
+          message = '对方已拒绝';
+          await this.proposersRepository.query(
+            `UPDATE proposers SET apply_status=reject WHERE id=${query.proposers_id}`
+          );
+          break;
+      }
+    } catch (err) {
+      return { status: false, statusCode: 500, data: err, message: '添加失败, 请重试' };
+    }
+    return { statusCode: 200, message, status: true, data: {} };
   }
 }

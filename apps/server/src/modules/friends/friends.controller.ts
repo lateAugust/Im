@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService } from './friends.service';
-import { ApplyDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
@@ -46,6 +46,10 @@ export class FriendsController {
     return this.friendsService.appliyList(query, req.user.sub);
   }
   @Put('/apply')
+  @HttpCode(200)
+  @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '同意/拒绝申请' })
-  auditApply() {}
+  async auditApply(@Query() query: FriendsAuditDto): Promise<ReturnBody<{}>> {
+    return this.friendsService.auditApply(query);
+  }
 }
