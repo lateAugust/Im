@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsInt,
   IsEmail,
@@ -8,7 +9,10 @@ import {
   MaxLength,
   IsNotEmpty,
   IsUrl,
-  IsMobilePhone
+  IsMobilePhone,
+  IsEmpty,
+  IsObject,
+  ValidateNested
 } from 'class-validator';
 import { PagesDto } from '../common/pages.dto';
 
@@ -28,7 +32,7 @@ class User {
   @ApiProperty({ required: false })
   @MinLength(2, { message: '昵称长度不能小于2' })
   @MaxLength(10, { message: '昵称长度不能大于10' })
-  @IsString({ message: 'nickname字段类型错误, 只能是字符串' })
+  // @IsString({ message: 'nickname字段类型错误, 只能是字符串' })
   nickname: string;
 
   @ApiProperty({ required: false })
@@ -37,26 +41,26 @@ class User {
   gender: string;
 
   @ApiProperty({ required: false })
-  @IsInt({ message: 'age类型错误, 只能是数字' })
+  // @IsInt({ message: 'age类型错误, 只能是数字' })
   age: number;
 
   @ApiProperty({ required: false })
   @IsUrl(null, { message: 'avatar不合法' })
-  @IsString({ message: 'avatar字段类型错误, 只能是字符串' })
+  // @IsString({ message: 'avatar字段类型错误, 只能是字符串' })
   avatar: number;
 
   @ApiProperty({ required: false })
-  @IsString({ message: 'address字段类型错误, 只能是字符串' })
+  // @IsString({ message: 'address字段类型错误, 只能是字符串' })
   address: string;
 
   @ApiProperty({ required: false })
   @IsMobilePhone('zh-CN', { strictMode: false }, { message: '手机号不合法' })
-  @IsString({ message: 'mobile字段类型错误, 只能是字符串' })
+  // @IsString({ message: 'mobile字段类型错误, 只能是字符串' })
   mobile: string;
 
   @ApiProperty({ required: false })
   @IsEmail(null, { message: 'email不合法' })
-  @IsString({ message: 'email字段类型错误, 只能是字符串' })
+  // @IsString({ message: 'email字段类型错误, 只能是字符串' })
   email: string;
 }
 
@@ -102,29 +106,33 @@ export class FriendsSearchingDto extends PagesDto {
 
 export class FriendsAuditDto {
   @ApiProperty({ required: true })
-  @IsInt({ message: 'relation_id字段类型错误, 只能是数字' })
+  // @IsInt({ message: 'relation_id字段类型错误, 只能是数字' })
   @IsNotEmpty({ message: '添加目标用户relation_id不能为空' })
   relation_id: number;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false, type: User })
+  @IsObject()
+  @Type(() => User)
   target_user: User;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false, type: User })
+  @IsObject()
+  @Type(() => User)
   relation_user: User;
 
   @ApiProperty({ required: true })
-  @IsInt({ message: 'target_id字段类型错误, 只能是数字' })
+  // @IsInt({ message: 'target_id字段类型错误, 只能是数字' })
   @IsNotEmpty({ message: '添加目标用户target_id不能为空' })
   target_id: number;
 
   @ApiProperty({ required: false })
-  @IsInt({ message: '用户proposers_id必须是数字类型' })
+  // @IsInt({ message: '用户proposers_id必须是数字类型' })
   @IsNotEmpty({ message: 'proposers_id不能为空' })
   proposers_id: number;
 
   @ApiProperty({ required: false })
   @IsString({ message: 'message字段类型错误, 只能是字符串' })
-  message?: string;
+  message: string;
 
   @ApiProperty({ required: true, enum: ['reject', 'agreement'] })
   @IsEnum(['reject', 'agreement'], {

@@ -42,6 +42,8 @@ export class FriendsController {
   }
   @Get('/apply/list')
   @ApiOperation({ summary: '被申请的列表' })
+  @ApiQuery({ name: 'page', description: '页码', required: false })
+  @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
   @UsePipes(new ValidatePipe())
   async applyList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers[] | []>> {
     return this.friendsService.appliyList(query, req.user.sub);
@@ -50,13 +52,15 @@ export class FriendsController {
   @HttpCode(200)
   @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '同意/拒绝申请' })
-  async auditApply(@Query() query: FriendsAuditDto): Promise<ReturnBody<{}>> {
+  async auditApply(@Body() query: FriendsAuditDto): Promise<ReturnBody<{}>> {
     return this.friendsService.auditApply(query);
   }
 
   @Get('/list')
   @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '朋友列表' })
+  @ApiQuery({ name: 'page', description: '页码', required: false })
+  @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
   async friendsList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Friends[] | []>> {
     return this.friendsService.friendsList(query, req.user.sub);
   }
