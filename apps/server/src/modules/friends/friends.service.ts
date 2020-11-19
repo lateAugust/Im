@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PagesDto } from '../../dto/common/pages.dto';
@@ -19,7 +19,6 @@ export class FriendsService {
   getHello(): string {
     return 'hello friend';
   }
-  friendsList() {}
   async searching({ page, page_size, keywords }: FriendsSearchingDto, id: number): Promise<ReturnBody<Users | []>> {
     page = Number(page || 1);
     page_size = Number(page_size || 10);
@@ -56,7 +55,7 @@ export class FriendsService {
       return { message: '添加失败', status: false, statusCode: 500, data: e };
     }
   }
-  async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers | []>> {
+  async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers[] | []>> {
     page = page || 1;
     page_size = page_size || 10;
     let sql =
@@ -101,5 +100,20 @@ export class FriendsService {
       return { status: false, statusCode: 500, data: err, message: '添加失败, 请重试' };
     }
     return { statusCode: 200, message, status: true, data: {} };
+  }
+  async friendsList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Friends[] | []>> {
+    page_size = page_size || 10;
+    page = page || 1;
+    let sql =
+      `SELECT SQL_CALC_FOUND_ROWS * FROM friends 
+    WHERE relation_id = ${id} OR target_id = ${id} ORDER BY id LIMIT` + pagination(page, page_size);
+    try {
+      let result = await this.proposersRepository.query(sql);
+      let totalResult = await this.usersRepository.query('SELECT FOUND_ROWS()');
+      let total = totalResult[0]['FOUND_ROWS()'] * 1;
+      return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
+    } catch (err) {
+      return { status: false, statusCode: 500, message: '获取失败', data: err };
+    }
   }
 }

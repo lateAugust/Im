@@ -11,6 +11,7 @@ import { Proposers } from '../../emtites/friends/proposers.emtity';
 
 import { RequestWidth } from 'types/express.extends';
 import { ValidatePipe } from './friends.validate.pipe';
+import { Friends } from '../../emtites/friends/friends.emtity';
 
 @ApiTags('friends')
 @ApiBearerAuth()
@@ -20,7 +21,7 @@ export class FriendsController {
   constructor(private readonly friendsService: FriendsService) {}
   @Get()
   @ApiOperation({ summary: '获取好友列表' })
-  friendsList(): string {
+  getHello(): string {
     return this.friendsService.getHello();
   }
   @Get('/searching')
@@ -42,7 +43,7 @@ export class FriendsController {
   @Get('/apply/list')
   @ApiOperation({ summary: '被申请的列表' })
   @UsePipes(new ValidatePipe())
-  async applyList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers | []>> {
+  async applyList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers[] | []>> {
     return this.friendsService.appliyList(query, req.user.sub);
   }
   @Put('/apply')
@@ -51,5 +52,12 @@ export class FriendsController {
   @ApiOperation({ summary: '同意/拒绝申请' })
   async auditApply(@Query() query: FriendsAuditDto): Promise<ReturnBody<{}>> {
     return this.friendsService.auditApply(query);
+  }
+
+  @Get('/list')
+  @UsePipes(new ValidatePipe())
+  @ApiOperation({ summary: '朋友列表' })
+  async friendsList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Friends[] | []>> {
+    return this.friendsService.friendsList(query, req.user.sub);
   }
 }
