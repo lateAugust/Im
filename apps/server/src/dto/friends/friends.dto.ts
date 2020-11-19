@@ -99,3 +99,38 @@ export class FriendsSearchingDto extends PagesDto {
   @IsString({ message: 'keywords字段类型错误, 只能是字符串' })
   keywords: string;
 }
+
+export class FriendsAuditDto {
+  @ApiProperty({ required: true })
+  @IsInt({ message: 'relation_id字段类型错误, 只能是数字' })
+  @IsNotEmpty({ message: '添加目标用户relation_id不能为空' })
+  relation_id: number;
+
+  @ApiProperty({ required: true })
+  target_user: User;
+
+  @ApiProperty({ required: true })
+  relation_user: User;
+
+  @ApiProperty({ required: true })
+  @IsInt({ message: 'target_id字段类型错误, 只能是数字' })
+  @IsNotEmpty({ message: '添加目标用户target_id不能为空' })
+  target_id: number;
+
+  @ApiProperty({ required: false })
+  @IsInt({ message: '用户proposers_id必须是数字类型' })
+  @IsNotEmpty({ message: 'proposers_id不能为空' })
+  proposers_id: number;
+
+  @ApiProperty({ required: false })
+  @IsString({ message: 'message字段类型错误, 只能是字符串' })
+  message?: string;
+
+  @ApiProperty({ required: true, enum: ['reject', 'agreement'] })
+  @IsEnum(['reject', 'agreement'], {
+    message: '申请设置错误, 只能是reject, agreement二者之一'
+  })
+  @IsString({ message: 'apply_status字段类型错误, 只能是字符串' })
+  @IsNotEmpty({ message: '申请的状态不能为空' })
+  apply_status: string;
+}
