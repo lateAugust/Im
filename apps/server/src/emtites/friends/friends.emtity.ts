@@ -11,11 +11,11 @@ export class Friends {
   @Column({ type: 'int', comment: '申请人的id' })
   target_id: number;
 
-  @Column({ length: 255, nullable: false, comment: '申请人的信息' })
-  target_user: string;
+  @Column({ type: 'json', nullable: false, comment: '申请人的信息' })
+  target_user: object;
 
-  @Column({ length: 255, nullable: false, comment: '创建人的信息' })
-  relation_user: string;
+  @Column({ type: 'json', nullable: false, comment: '创建人的信息' })
+  relation_user: object;
 
   @Column({
     type: 'timestamp',
