@@ -5,9 +5,10 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { FriendModule } from './modules/friends/friends.module';
 import { MessageModule } from './modules/message/message.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [DbModule, UsersModule, FriendModule, MessageModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DbModule, UsersModule, FriendModule, MessageModule],
   controllers: [AppController],
   providers: [AppService]
 })

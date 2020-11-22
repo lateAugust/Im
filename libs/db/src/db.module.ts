@@ -2,15 +2,18 @@ import { Module } from '@nestjs/common';
 import { DbService } from './db.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import entities from './entities';
+import { ConfigModule } from '@nestjs/config';
+const env = process.env;
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: '192.168.208.128',
-      port: 3306,
-      username: 'root',
-      password: '123456',
-      database: 'test',
+      host: env.DATABASE_HOST,
+      port: Number(env.DATAABASE_PORT),
+      username: env.DATABASE_USER,
+      password: env.DATABASE_PASSWORD,
+      database: env.DATABASE_DATABASE,
       entities,
       synchronize: true
     })
