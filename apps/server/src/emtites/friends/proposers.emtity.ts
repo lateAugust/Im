@@ -14,11 +14,11 @@ export class Proposers {
   @Column({ length: 255, default: null, comment: '附加消息' })
   message: string;
 
-  @Column({ length: 255, nullable: false, comment: '要申请添加的用户信息' })
-  target_user: string;
+  @Column({ type: 'json', nullable: false, comment: '要申请添加的用户信息' })
+  target_user: object;
 
-  @Column({ length: 255, nullable: false, comment: '申请方的用户信息' })
-  apply_user: string;
+  @Column({ type: 'json', nullable: false, comment: '申请方的用户信息' })
+  apply_user: object;
 
   @Column('enum', {
     enum: ['underReview', 'reject', 'agreement'],

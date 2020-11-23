@@ -83,10 +83,14 @@ export class ApplyDto {
   @IsNotEmpty({ message: '添加目标用户target_id不能为空' })
   target_id: number;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false, type: User })
+  @IsObject()
+  @Type(() => User)
   target_user: User;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false, type: User })
+  @IsObject()
+  @Type(() => User)
   apply_user: User;
 
   @ApiProperty({ required: true, enum: ['underReview', 'reject', 'agreement'] })
