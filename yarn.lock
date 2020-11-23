@@ -615,6 +615,14 @@
     multer "1.4.2"
     tslib "2.0.1"
 
+"@nestjs/platform-ws@^7.5.5":
+  version "7.5.5"
+  resolved "https://registry.npm.taobao.org/@nestjs/platform-ws/download/@nestjs/platform-ws-7.5.5.tgz#6e262145a83214cd50b4965102a92af102c6371a"
+  integrity sha1-biYhRagyFM1QtJZRAqkq8QLGNxo=
+  dependencies:
+    tslib "2.0.3"
+    ws "7.4.0"
+
 "@nestjs/schematics@^7.0.0", "@nestjs/schematics@^7.1.0":
   version "7.1.2"
   resolved "https://registry.npm.taobao.org/@nestjs/schematics/download/@nestjs/schematics-7.1.2.tgz#678058436f578fc1e933da9db327a223b1ab8a73"
@@ -648,6 +656,14 @@
   integrity sha1-61tH/TLULPdpfVImpOFw1r27bXo=
   dependencies:
     uuid "8.3.0"
+
+"@nestjs/websockets@^7.5.5":
+  version "7.5.5"
+  resolved "https://registry.npm.taobao.org/@nestjs/websockets/download/@nestjs/websockets-7.5.5.tgz#18452ce2346e76e46d664c9bff60db9b2375e36b"
+  integrity sha1-GEUs4jRuduRtZkyb/2DbmyN142s=
+  dependencies:
+    iterare "1.2.1"
+    tslib "2.0.3"
 
 "@nuxtjs/opencollective@0.2.2":
   version "0.2.2"
@@ -7141,7 +7157,7 @@ tslib@2.0.1:
   resolved "https://registry.npm.taobao.org/tslib/download/tslib-2.0.1.tgz?cache=0&sync_timestamp=1602286724979&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Ftslib%2Fdownload%2Ftslib-2.0.1.tgz#410eb0d113e5b6356490eec749603725b021b43e"
   integrity sha1-QQ6w0RPltjVkkO7HSWA3JbAhtD4=
 
-tslib@>=1.9.0:
+tslib@2.0.3, tslib@>=1.9.0:
   version "2.0.3"
   resolved "https://registry.npm.taobao.org/tslib/download/tslib-2.0.3.tgz?cache=0&sync_timestamp=1602286632196&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Ftslib%2Fdownload%2Ftslib-2.0.3.tgz#8e0741ac45fc0c226e58a17bfc3e64b9bc6ca61c"
   integrity sha1-jgdBrEX8DCJuWKF7/D5kubxsphw=
@@ -7624,6 +7640,11 @@ write@1.0.3:
   integrity sha1-CADhRSO5I6OH5BUSPIZWFqrg9cM=
   dependencies:
     mkdirp "^0.5.1"
+
+ws@7.4.0:
+  version "7.4.0"
+  resolved "https://registry.npm.taobao.org/ws/download/ws-7.4.0.tgz#a5dd76a24197940d4a8bb9e0e152bb4503764da7"
+  integrity sha1-pd12okGXlA1Ki7ng4VK7RQN2Tac=
 
 ws@^7.2.3:
   version "7.3.1"
