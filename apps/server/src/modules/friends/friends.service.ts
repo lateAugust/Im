@@ -42,13 +42,9 @@ export class FriendsService {
     try {
       if (params.proposers_id) {
         let data = await this.proposersRepository.findOne({ id: params.proposers_id });
-        let result = await this.proposersRepository.save(Object.assign({}, data, { message: params.message }));
+        await this.proposersRepository.save(Object.assign({}, data, { message: params.message }));
       } else {
-        let targetUser = JSON.stringify(params.target_user);
-        let applyUser = JSON.stringify(params.apply_user);
-        let result = await this.proposersRepository.save(
-          Object.assign({}, params, { target_user: targetUser, apply_user: applyUser })
-        );
+        await this.proposersRepository.save(params);
       }
       return { message: '添加成功', status: true, statusCode: 200, data: {} };
     } catch (e) {
@@ -82,12 +78,7 @@ export class FriendsService {
           Reflect.deleteProperty(query, 'proposers_id');
           Reflect.deleteProperty(query, 'message');
           Reflect.deleteProperty(query, 'apply_status');
-          await this.friendsRepository.save(
-            Object.assign({}, query, {
-              target_user: JSON.stringify(query.target_user),
-              relation_user: JSON.stringify(query.relation_user)
-            })
-          );
+          await this.friendsRepository.save(query);
           break;
         case 'reject':
           message = '对方已拒绝';
