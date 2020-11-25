@@ -1,24 +1,18 @@
 import { Column, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 
 @Entity()
-export class Links {
+export class Messages {
   @PrimaryGeneratedColumn({ comment: '主键id' })
   id: number;
 
-  @Column({ length: '11', comment: '双方的id, 升序, 中间逗号隔开' })
-  ids: string;
-
-  @Column({ type: 'json', nullable: false, comment: '发送方的信息' })
-  send_user: object;
-
-  @Column({ type: 'json', nullable: false, comment: '接收方的信息' })
-  receive_user: object;
-
-  @Column({ comment: '未读消息合计' })
-  unread_count: number;
-
   @Column({ comment: '消息内容' })
   message: string;
+
+  @Column({ comment: '发送方id' })
+  send_id: number;
+
+  @Column({ comment: '接收方id' })
+  receive_id: number;
 
   @Column({
     type: 'timestamp',
