@@ -38,3 +38,8 @@ export function dataType(v: any): string {
   };
   return type[Object.prototype.toString.call(v)];
 }
+
+export function sortReturnString(n1: number, n2: number): string {
+  let array: number[] = [n1, n2].sort((a, b) => a - b);
+  return array.join(',');
+}
