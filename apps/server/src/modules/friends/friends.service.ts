@@ -30,9 +30,9 @@ export class FriendsService {
     ORDER BY users.id LIMIT ${Math.max(0, page - 1) * page_size},${page_size}`; */
     let sql = `SELECT SQL_CALC_FOUND_ROWS id,username,nickname,gender,age,address,mobile,avatar,email,create_at FROM users`;
     if (keywords) {
-      sql += ` WHERE (instr(users.username, '${keywords}') > 0 OR instr(users.mobile, '${keywords}') > 0) 
-      ORDER BY users.id LIMIT ${Math.max(0, page - 1) * page_size},${page_size}`;
+      sql += ` WHERE (instr(users.username, '${keywords}') > 0 OR instr(users.mobile, '${keywords}') > 0)`;
     }
+    sql += `ORDER BY users.id LIMIT ${Math.max(0, page - 1) * page_size},${page_size}`;
     let result = await this.usersRepository.query(sql);
     let totalResult = await this.usersRepository.query('SELECT FOUND_ROWS()');
     let total = totalResult[0]['FOUND_ROWS()'] * 1;
