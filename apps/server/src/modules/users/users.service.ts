@@ -19,7 +19,7 @@ export class UsersService {
   async register({ username, password }: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     try {
       let result = await this.usersRepository.save({ username, password });
-      return { status: false, statusCode: 200, message: '注册成功', data: result };
+      return { status: true, statusCode: 200, message: '注册成功', data: result };
     } catch (e) {
       let message = '';
       switch (e.errno) {

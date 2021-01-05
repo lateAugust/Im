@@ -9,7 +9,8 @@ import {
   Put,
   Query,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
+  HttpCode
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
@@ -35,12 +36,14 @@ export class UsersController {
   }
   @Post('/register')
   @UsePipes(new ValidatePipe())
+  @HttpCode(200)
   @ApiOperation({ summary: '用户注册接口' })
   async register(@Body() body: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     return this.usersService.register(body);
   }
   @Post('/login')
   @UsePipes(new ValidatePipe())
+  @HttpCode(200)
   @ApiOperation({ summary: '用户登录接口' })
   async login(@Body() body: CreateUsersBaseDto): Promise<ReturnBody<CreateUsersBaseDto | {}>> {
     return this.usersService.login(body);
@@ -55,9 +58,10 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Put('/info')
+  @HttpCode(200)
   @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '修改用户信息' })
-  async setUserInfo(@Request() req: RequestWidth, @Query() query: SetUserInfoDto): Promise<ReturnBody<Users | {}>> {
+  async setUserInfo(@Request() req: RequestWidth, @Body() query: SetUserInfoDto): Promise<ReturnBody<Users | {}>> {
     return this.usersService.setUserInfo(Number(req.user.sub), query);
   }
 }

@@ -1,7 +1,7 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
 import { validate, ValidationError } from 'class-validator';
 import { plainToClass } from 'class-transformer';
-import { dataType } from '../../utils/utils';
+import { dataType, propEmpty } from '../../utils/utils';
 
 // 注意验证装饰器的书写顺序 (执行顺序, 由上往下, 则相应的提示变为由下往上)
 // MinLength -> MaxLength -> IsString -> IsNotEmpty
@@ -40,8 +40,8 @@ export class ValidatePipe implements PipeTransform<any> {
     return array;
   }
   private returnErrorMessage(errors: ValidationError[]): any {
-    for (let { property, constraints, value } of errors) {
-      if (!isNotValidateProp.includes(property) || value !== undefined) {
+    for (let { constraints, value } of errors) {
+      if (constraints.isNotEmpty || propEmpty(value)) {
         throw new BadRequestException(Object.values(constraints)[0]);
       }
     }
