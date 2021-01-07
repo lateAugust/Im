@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Users } from '../users/users.entity';
 
 @Entity()
 export class Friends {
@@ -16,6 +17,12 @@ export class Friends {
 
   @Column({ type: 'json', nullable: false, comment: '创建人的信息' })
   relation_user: object;
+
+  @OneToMany(
+    type => Users,
+    user => user.friend
+  )
+  user: Users;
 
   @Column({
     type: 'timestamp',

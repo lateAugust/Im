@@ -44,7 +44,7 @@ class User {
   @IsInt({ message: 'age类型错误, 只能是数字' })
   age: number;
 
-  @ApiProperty({ required: false })
+  /* @ApiProperty({ required: false })
   @IsUrl(null, { message: 'avatar不合法' })
   @IsString({ message: 'avatar字段类型错误, 只能是字符串' })
   avatar: number;
@@ -61,7 +61,7 @@ class User {
   @ApiProperty({ required: false })
   @IsEmail(null, { message: 'email不合法' })
   @IsString({ message: 'email字段类型错误, 只能是字符串' })
-  email: string;
+  email: string; */
 }
 
 export class ApplyDto {
@@ -103,8 +103,9 @@ export class ApplyDto {
 }
 
 export class FriendsSearchingDto extends PagesDto {
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: true })
   @IsString({ message: 'keywords字段类型错误, 只能是字符串' })
+  @IsNotEmpty({ message: '手机、昵称不能为空' })
   keywords: string;
 }
 

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Users } from '../users/users.entity';
 
 @Entity()
 export class Proposers {
@@ -26,6 +27,12 @@ export class Proposers {
     default: 'underReview'
   })
   apply_status: string;
+
+  @OneToMany(
+    type => Users,
+    user => user.proposer
+  )
+  user: Users;
 
   @Column({
     type: 'timestamp',
