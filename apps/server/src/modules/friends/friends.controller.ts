@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes, HttpCode } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes, HttpCode, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService } from './friends.service';
 import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
@@ -17,25 +17,22 @@ import { Friends } from '../../emtites/friends/friends.emtity';
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
 @Controller('friends')
+@UsePipes(new ValidatePipe())
 export class FriendsController {
   constructor(private readonly friendsService: FriendsService) {}
-  @Get()
-  @ApiOperation({ summary: '获取好友列表' })
-  getHello(): string {
-    return this.friendsService.getHello();
-  }
   @Get('/searching')
   @ApiOperation({ summary: '检索可添加的用户' })
   @ApiQuery({ name: 'keywords', description: '关键字' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
-  @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
-  @UsePipes(new ValidatePipe())
-  async searching(@Query() query: FriendsSearchingDto, @Request() req: RequestWidth): Promise<ReturnBody<Users | []>> {
+  @ApiQuery({ name: 'page_size', description: '该页条数', required: false })
+  async searching(
+    @Query() query: FriendsSearchingDto,
+    @Request() req: RequestWidth
+  ): Promise<ReturnBody<Users[] | []>> {
     return this.friendsService.searching(query, req.user.sub);
   }
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })
-  @UsePipes(new ValidatePipe())
   @HttpCode(200)
   createApply(@Body() apply: ApplyDto): Promise<ReturnBody<{}>> {
     return this.friendsService.createApply(apply);
@@ -44,20 +41,17 @@ export class FriendsController {
   @ApiOperation({ summary: '被申请的列表' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
   @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
-  @UsePipes(new ValidatePipe())
   async applyList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers[] | []>> {
     return this.friendsService.appliyList(query, req.user.sub);
   }
-  @Put('/apply')
+  @Put('/apply/:id')
   @HttpCode(200)
-  @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '同意/拒绝申请' })
-  async auditApply(@Body() query: FriendsAuditDto): Promise<ReturnBody<{}>> {
-    return this.friendsService.auditApply(query);
+  async auditApply(@Body() query: FriendsAuditDto, @Param() id: string): Promise<ReturnBody<{}>> {
+    return this.friendsService.auditApply(query, id);
   }
 
   @Get('/list')
-  @UsePipes(new ValidatePipe())
   @ApiOperation({ summary: '朋友列表' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
   @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
