@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Friends } from '../friends/friends.emtity';
+import { Proposers } from '../friends/proposers.emtity';
 
 @Entity()
 export class Users {
@@ -31,6 +33,18 @@ export class Users {
 
   @Column({ length: 255, default: null, comment: '头像地址' })
   avatar: string;
+
+  @OneToMany(
+    type => Friends,
+    friend => friend.user
+  )
+  friend: Friends;
+
+  @OneToMany(
+    type => Proposers,
+    proposers => proposers.user
+  )
+  proposer: Proposers;
 
   @Column({
     type: 'timestamp',
