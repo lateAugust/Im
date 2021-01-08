@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": { "type": "number", "description": "操作状态码(200)", "default": "200" },
+    "message": { "type": "string", "description": "操作提示语()" },
+    "data": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "number", "description": "用户id" },
+        "username": { "type": "string", "description": "用户名" },
+        "age": { "type": "number", "description": "年龄" },
+        "gender": { "type": "string", "description": "女,男,保密" },
+        "avatar": { "type": "string", "description": "头像" },
+        "mobile": { "type": "string", "description": "手机号" },
+        "email": { "type": "string", "description": "电子邮件地址" },
+        "address": { "type": "string", "description": "地址" },
+        "create_at": { "type": "string", "description": "创建时间" }
+      },
+      "description": "用户信息",
+      "required": ["id", "username"]
+    }
+  },
+  "required": ["data"]
+}

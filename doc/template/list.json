@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": { "type": "number", "description": "操作状态码(200)", "default": "200" },
+    "message": { "type": "string", "description": "操作提示语()" },
+    "page": { "type": "number", "description": "页码" },
+    "page_size": { "type": "number", "description": "该页数量" },
+    "data": {
+      "type": "array",
+      "properties": {},
+      "description": "列表",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "username": { "type": "string", "description": "用户名" },
+              "age": { "type": "number", "description": "年龄" }
+            },
+            "required": ["nickname"],
+            "description": "查询的用户信息"
+          }
+        },
+        "required": ["user"]
+      }
+    }
+  }
+}
