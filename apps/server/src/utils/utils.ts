@@ -43,3 +43,21 @@ export function sortReturnString(n1: number, n2: number): string {
   let array: number[] = [n1, n2].sort((a, b) => a - b);
   return array.join(',');
 }
+
+export function processUnderlineKey(key: string) {
+  return key.split('_');
+}
+
+export function processIncludeUnderlineKeyObject<T, C>(array: T[]): C[] {
+  let list = [];
+  for (let item of array) {
+    let obj = {};
+    for (let [key, val] of Object.entries(item)) {
+      let [prop, props] = processUnderlineKey(key);
+      obj[prop] = obj[prop] || {};
+      obj[prop][props] = val;
+    }
+    list.push(obj);
+  }
+  return list;
+}
