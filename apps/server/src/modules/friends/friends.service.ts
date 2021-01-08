@@ -7,7 +7,9 @@ import { Friends } from '../../emtites/friends/friends.emtity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
 import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
-import { pagination } from '../../utils/utils';
+import { pagination, processIncludeUnderlineKeyObject } from '../../utils/utils';
+
+import { FriendsSearchingInterface, FriendsSearchingListInterface } from '../../interface/friends.interface';
 
 const env = process.env;
 let { PAGE, PAGE_SIZE } = env;
@@ -21,16 +23,15 @@ export class FriendsService {
     @InjectRepository(Users) private readonly usersRepository: Repository<Users>,
     @InjectRepository(Friends) private readonly friendsRepository: Repository<Friends>
   ) {}
-  getHello(): string {
-    return 'hello friend';
-  }
-  async searching({ page, page_size, keywords }: FriendsSearchingDto, id: number): Promise<ReturnBody<Users[] | []>> {
+  async searching(
+    { page, page_size, keywords }: FriendsSearchingDto,
+    id: number
+  ): Promise<ReturnBody<FriendsSearchingListInterface[] | []>> {
     page = page || defaultPage;
     page_size = page_size || defaultPageSize;
     try {
-      const result = await this.usersRepository
-        .createQueryBuilder()
-        .from(Users, 'user')
+      const builder = await this.usersRepository
+        .createQueryBuilder('user')
         .leftJoinAndSelect('friends', 'friend', 'user.id <> friend.relation_id')
         .leftJoinAndSelect('proposers', 'proposer', 'user.id = proposer.target_id')
         .select([
@@ -47,9 +48,11 @@ export class FriendsService {
         .where('user.id <> :id', { id })
         .andWhere(`instr(user.username, '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0`)
         .skip(Math.max(0, page - 1) * page_size)
-        .take(page_size)
-        .getManyAndCount();
-      return { status: true, statusCode: 200, message: '获取成功', data: result[0], total: result[1], page, page_size };
+        .take(page_size);
+      let list = await builder.getRawMany<FriendsSearchingInterface>();
+      let count = await builder.getCount();
+      let data = processIncludeUnderlineKeyObject<FriendsSearchingInterface, FriendsSearchingListInterface>(list);
+      return { status: true, statusCode: 200, message: '获取成功', data, total: count, page, page_size };
     } catch (err) {
       return { message: '网络错误, 请重试', status: false, statusCode: 500, data: err };
     }
@@ -62,9 +65,9 @@ export class FriendsService {
       } else {
         await this.proposersRepository.save(params);
       }
-      return { message: '添加成功', status: true, statusCode: 200, data: {} };
+      return { message: '申请已发送', status: true, statusCode: 200, data: {} };
     } catch (e) {
-      return { message: '添加失败', status: false, statusCode: 500, data: e };
+      return { message: '申请发送失败, 请重试', status: false, statusCode: 500, data: e };
     }
   }
   async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers[] | []>> {
