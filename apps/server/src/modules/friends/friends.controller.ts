@@ -21,6 +21,12 @@ import { Friends } from '../../emtites/friends/friends.emtity';
 @UsePipes(new ValidatePipe())
 export class FriendsController {
   constructor(private readonly friendsService: FriendsService) {}
+
+  /**
+   * 检索可添加的用户
+   * @param query
+   * @param req
+   */
   @Get('/searching')
   @ApiOperation({ summary: '检索可添加的用户' })
   @ApiQuery({ name: 'keywords', description: '关键字' })
@@ -32,6 +38,12 @@ export class FriendsController {
   ): Promise<ReturnBody<FriendsSearchingListInterface[] | []>> {
     return this.friendsService.searching(query, req.user.sub);
   }
+
+  /**
+   * 待添加用户详情
+   * @param param
+   * @param query
+   */
   @Get('/searching/:id')
   async searchingDetail(
     @Param() param: { id: number },
@@ -39,12 +51,22 @@ export class FriendsController {
   ): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
     return this.friendsService.searchingDetail(param.id, query.proposer_id);
   }
+
+  /**
+   * 创建/修改(message)好友申请
+   */
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })
   @HttpCode(200)
   createApply(@Body() apply: ApplyDto): Promise<ReturnBody<{}>> {
     return this.friendsService.createApply(apply);
   }
+
+  /**
+   * 被申请添加好友的列表
+   * @param query
+   * @param req
+   */
   @Get('/apply/list')
   @ApiOperation({ summary: '被申请的列表' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
@@ -52,6 +74,12 @@ export class FriendsController {
   async applyList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers[] | []>> {
     return this.friendsService.appliyList(query, req.user.sub);
   }
+
+  /**
+   * 处理添加好友申请
+   * @param query
+   * @param id
+   */
   @Put('/apply/:id')
   @HttpCode(200)
   @ApiOperation({ summary: '同意/拒绝申请' })
@@ -59,6 +87,11 @@ export class FriendsController {
     return this.friendsService.auditApply(query, id);
   }
 
+  /**
+   * 朋友列表
+   * @param query
+   * @param req
+   */
   @Get('/list')
   @ApiOperation({ summary: '朋友列表' })
   @ApiQuery({ name: 'page', description: '页码', required: false })

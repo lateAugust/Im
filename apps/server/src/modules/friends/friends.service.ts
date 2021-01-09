@@ -28,6 +28,12 @@ export class FriendsService {
     @InjectRepository(Users) private readonly usersRepository: Repository<Users>,
     @InjectRepository(Friends) private readonly friendsRepository: Repository<Friends>
   ) {}
+
+  /**
+   * 检索可添加的用户
+   * @param query
+   * @param req
+   */
   async searching(
     { page, page_size, keywords }: FriendsSearchingDto,
     id: number
@@ -63,7 +69,7 @@ export class FriendsService {
     }
   }
   /**
-   *
+   * 待添加用户详情
    * @param id 用户id
    * @param proposer_id proposers表id
    */
@@ -95,6 +101,10 @@ export class FriendsService {
       return { message: '获取失败', status: false, statusCode: 500, data: err };
     }
   }
+
+  /**
+   * 创建/修改(message)好友申请
+   */
   async createApply(params: ApplyDto): Promise<ReturnBody<{}>> {
     try {
       let message = '申请已发送';
@@ -111,6 +121,12 @@ export class FriendsService {
       return { message, status: false, statusCode: 500, data: e };
     }
   }
+
+  /**
+   * 被申请添加好友的列表
+   * @param query
+   * @param req
+   */
   async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers[] | []>> {
     page = page || 1;
     page_size = page_size || 10;
@@ -127,7 +143,7 @@ export class FriendsService {
     }
   }
   /**
-   * 处理好友请求
+   * 处理添加好友申请
    * @param query
    */
   async auditApply(query: FriendsAuditDto, id: string): Promise<ReturnBody<{}>> {
@@ -150,6 +166,12 @@ export class FriendsService {
     }
     return { statusCode: 200, message, status: true, data: {} };
   }
+
+  /**
+   * 朋友列表
+   * @param query
+   * @param req
+   */
   async friendsList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Friends[] | []>> {
     page_size = page_size || 10;
     page = page || 1;
