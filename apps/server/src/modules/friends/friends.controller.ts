@@ -5,7 +5,7 @@ import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friend
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
-import { FriendsSearchingListInterface } from '../../interface/friends.interface';
+import { FriendsSearchingListInterface, FriendsSearchingDetailInterface } from '../../interface/friends.interface';
 
 import { Users } from '../../emtites/users/users.entity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
@@ -31,6 +31,13 @@ export class FriendsController {
     @Request() req: RequestWidth
   ): Promise<ReturnBody<FriendsSearchingListInterface[] | []>> {
     return this.friendsService.searching(query, req.user.sub);
+  }
+  @Get('/searching/:id')
+  async searchingDetail(
+    @Param() param: { id: number },
+    @Query() query: { proposer_id: number }
+  ): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
+    return this.friendsService.searchingDetail(param.id, query.proposer_id);
   }
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })

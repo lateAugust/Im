@@ -9,7 +9,12 @@ import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
 import { pagination, processIncludeUnderlineKeyObject } from '../../utils/utils';
 
-import { FriendsSearchingInterface, FriendsSearchingListInterface } from '../../interface/friends.interface';
+import {
+  FriendsSearchingInterface,
+  FriendsSearchingListInterface,
+  FriendsSearchingDetailInterface,
+  FriendsSearchingDetailRawInterface
+} from '../../interface/friends.interface';
 
 const env = process.env;
 let { PAGE, PAGE_SIZE } = env;
@@ -57,17 +62,53 @@ export class FriendsService {
       return { message: '网络错误, 请重试', status: false, statusCode: 500, data: err };
     }
   }
+  /**
+   *
+   * @param id 用户id
+   * @param proposer_id proposers表id
+   */
+  async searchingDetail(id: number, proposer_id: number): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
+    try {
+      let builder = await this.usersRepository
+        .createQueryBuilder('user')
+        .leftJoin('proposers', 'proposer', 'user.id = proposer.target_id', { id: proposer_id })
+        .select([
+          'user.id',
+          'user.username',
+          'user.nickname',
+          'user.age',
+          'user.gender',
+          'user.avatar',
+          'user.mobile',
+          'user.email',
+          'user.address',
+          'proposer.id',
+          'proposer.message'
+        ])
+        .where('user.id = :id', { id });
+      let user = await builder.getRawOne<FriendsSearchingDetailRawInterface>();
+      let data = processIncludeUnderlineKeyObject<FriendsSearchingDetailRawInterface, FriendsSearchingDetailInterface>([
+        user
+      ])[0];
+      return { status: true, statusCode: 200, message: '获取成功', data };
+    } catch (err) {
+      return { message: '获取失败', status: false, statusCode: 500, data: err };
+    }
+  }
   async createApply(params: ApplyDto): Promise<ReturnBody<{}>> {
     try {
+      let message = '申请已发送';
       if (params.proposers_id) {
+        message = '修改成功';
         let data = await this.proposersRepository.findOne({ id: params.proposers_id });
         await this.proposersRepository.save(Object.assign({}, data, { message: params.message }));
       } else {
         await this.proposersRepository.save(params);
       }
-      return { message: '申请已发送', status: true, statusCode: 200, data: {} };
+      return { message, status: true, statusCode: 200, data: {} };
     } catch (e) {
-      return { message: '申请发送失败, 请重试', status: false, statusCode: 500, data: e };
+      let message = params.proposers_id ? '修改失败' : '申请发送失败';
+      return { message, status: false, statusCode: 500, data: e };
     }
   }
   async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers[] | []>> {
