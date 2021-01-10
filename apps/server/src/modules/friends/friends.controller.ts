@@ -5,7 +5,11 @@ import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friend
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
-import { FriendsSearchingListInterface, FriendsSearchingDetailInterface } from '../../interface/friends.interface';
+import {
+  FriendsSearchingListInterface,
+  FriendsSearchingDetailInterface,
+  FriendsApplyCountInterface
+} from '../../interface/friends/friends.interface';
 
 import { Users } from '../../emtites/users/users.entity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
@@ -60,6 +64,14 @@ export class FriendsController {
   @HttpCode(200)
   createApply(@Body() apply: ApplyDto): Promise<ReturnBody<{}>> {
     return this.friendsService.createApply(apply);
+  }
+
+  /**
+   * 获取待处理的添加好友请求数量
+   */
+  @Get('/apply/count')
+  applyCount(@Request() req: RequestWidth): Promise<ReturnBody<FriendsApplyCountInterface>> {
+    return this.friendsService.appliyCount(req.user.sub);
   }
 
   /**

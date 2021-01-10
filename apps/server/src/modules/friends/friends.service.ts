@@ -13,8 +13,9 @@ import {
   FriendsSearchingInterface,
   FriendsSearchingListInterface,
   FriendsSearchingDetailInterface,
-  FriendsSearchingDetailRawInterface
-} from '../../interface/friends.interface';
+  FriendsSearchingDetailRawInterface,
+  FriendsApplyCountInterface
+} from '../../interface/friends/friends.interface';
 
 const env = process.env;
 let { PAGE, PAGE_SIZE } = env;
@@ -119,6 +120,24 @@ export class FriendsService {
     } catch (e) {
       let message = params.proposers_id ? '修改失败' : '申请发送失败';
       return { message, status: false, statusCode: 500, data: e };
+    }
+  }
+
+  /**
+   * 获取待处理的添加好友请求数量
+   * id 当前登录的用户id
+   */
+  async appliyCount(id: number): Promise<ReturnBody<FriendsApplyCountInterface>> {
+    try {
+      let count = await this.proposersRepository
+        .createQueryBuilder('proposer')
+        .where('proposer.target_id = :id', { id })
+        .andWhere(`proposer.apply_status = \'underReview\'`)
+        .getCount();
+      console.log(count);
+      return { message: '获取成功', status: false, statusCode: 200, data: { count } };
+    } catch (err) {
+      return { message: '获取失败', status: false, statusCode: 500, data: err };
     }
   }
 

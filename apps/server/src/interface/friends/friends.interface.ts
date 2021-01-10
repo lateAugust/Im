@@ -59,3 +59,7 @@ export interface FriendsSearchingDetailInterface {
     message: string | null;
   };
 }
+
+export interface FriendsApplyCountInterface {
+  count: number;
+}
