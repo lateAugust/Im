@@ -1,6 +1,7 @@
 {
   "id": { "type": "number", "description": "用户id" },
   "username": { "type": "string", "description": "用户名" },
+  "nickname": { "type": "string", "description": "昵称" },
   "age": { "type": "number", "description": "年龄" },
   "gender": { "type": "string", "description": "女,男,保密" },
   "avatar": { "type": "string", "description": "头像" },
