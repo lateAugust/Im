@@ -1,13 +1,13 @@
 import { Injectable, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { createQueryBuilder, Repository } from 'typeorm';
+import { createQueryBuilder, Repository, QueryFailedError } from 'typeorm';
 import { PagesDto } from '../../dto/common/pages.dto';
-import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import { ApplyDto, FriendsApplyListDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
 import { Friends } from '../../emtites/friends/friends.emtity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
 import { Users } from '../../emtites/users/users.entity';
 import { ReturnBody } from '../../utils/return-body';
-import { pagination, processIncludeUnderlineKeyObject } from '../../utils/utils';
+import { pagination, processIncludeUnderlineKeyObject, sortReturnString } from '../../utils/utils';
 
 import {
   FriendsSearchingInterface,
@@ -44,8 +44,17 @@ export class FriendsService {
     try {
       const builder = await this.usersRepository
         .createQueryBuilder('user')
-        .leftJoinAndSelect('friends', 'friend', 'user.id <> friend.relation_id')
-        .leftJoinAndSelect('proposers', 'proposer', 'user.id = proposer.target_id')
+        .leftJoinAndSelect(
+          'friends',
+          'friend',
+          `IF( ${id} > user.id, CONCAT( user.id, ',', ${id} ), CONCAT( ${id}, ',', user.id )) = friend.ids`
+        )
+        .leftJoinAndSelect(
+          'proposers',
+          'proposer',
+          "user.id = proposer.target_id AND proposer.apply_status <> 'agreement'"
+        )
+        .distinct(true)
         .select([
           'user.id',
           'user.username',
@@ -55,7 +64,8 @@ export class FriendsService {
           'user.age',
           'proposer.id',
           'proposer.message',
-          'friend.id'
+          'friend.id',
+          'proposer.apply_status'
         ])
         .where('user.id <> :id', { id })
         .andWhere(`instr(user.username, '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0`)
@@ -69,16 +79,27 @@ export class FriendsService {
       return { message: '网络错误, 请重试', status: false, statusCode: 500, data: err };
     }
   }
+
   /**
    * 待添加用户详情
-   * @param id 用户id
-   * @param proposer_id proposers表id
+   * @param id proposers.contact_id
+   * @param proposer_id proposers.id
    */
-  async searchingDetail(id: number, proposer_id: number): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
+  async searchingDetail(
+    id: number,
+    proposer_id: number,
+    user_id: number
+  ): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
     try {
       let builder = await this.usersRepository
         .createQueryBuilder('user')
-        .leftJoin('proposers', 'proposer', 'user.id = proposer.target_id', { id: proposer_id })
+        .leftJoinAndSelect(
+          'friends',
+          'friend',
+          `IF( ${user_id} > user.id, CONCAT( user.id, ',', ${user_id} ), CONCAT( ${user_id}, ',', user.id )) = friend.ids`
+        )
+        .leftJoin('proposers', 'proposer', "user.id = proposer.target_id AND proposer.apply_status <> 'agreement'")
+        .distinct(true)
         .select([
           'user.id',
           'user.username',
@@ -90,11 +111,13 @@ export class FriendsService {
           'user.email',
           'user.address',
           'proposer.id',
-          'proposer.message'
+          'proposer.message',
+          'proposer.apply_status',
+          'friend.id'
         ])
         .where('user.id = :id', { id });
       let user = await builder.getRawOne<FriendsSearchingDetailRawInterface>();
-      let data = processIncludeUnderlineKeyObject<FriendsSearchingDetailRawInterface, FriendsSearchingDetailInterface>([
+      let data = processIncludeUnderlineKeyObject<FriendsSearchingDetailRawInterface, FriendsSearchingListInterface>([
         user
       ])[0];
       return { status: true, statusCode: 200, message: '获取成功', data };
@@ -104,19 +127,22 @@ export class FriendsService {
   }
 
   /**
-   * 创建/修改(message)好友申请
+   * 创建/修改(message)/重新申请/好友申请
    */
-  async createApply(params: ApplyDto): Promise<ReturnBody<{}>> {
+  async createApply(params: ApplyDto): Promise<ReturnBody<Proposers | {}>> {
     try {
       let message = '申请已发送';
+      let result: Proposers;
       if (params.proposers_id) {
-        message = '修改成功';
+        message = params.is_review === 'reject' ? '申请已发送' : '修改成功';
         let data = await this.proposersRepository.findOne({ id: params.proposers_id });
-        await this.proposersRepository.save(Object.assign({}, data, { message: params.message }));
+        result = await this.proposersRepository.save(
+          Object.assign({}, data, { message: params.message, apply_status: params.apply_status })
+        );
       } else {
-        await this.proposersRepository.save(params);
+        result = await this.proposersRepository.save(params);
       }
-      return { message, status: true, statusCode: 200, data: {} };
+      return { message, status: true, statusCode: 200, data: result };
     } catch (e) {
       let message = params.proposers_id ? '修改失败' : '申请发送失败';
       return { message, status: false, statusCode: 500, data: e };
@@ -127,14 +153,13 @@ export class FriendsService {
    * 获取待处理的添加好友请求数量
    * id 当前登录的用户id
    */
-  async appliyCount(id: number): Promise<ReturnBody<FriendsApplyCountInterface>> {
+  async applyCount(id: number): Promise<ReturnBody<FriendsApplyCountInterface>> {
     try {
       let count = await this.proposersRepository
         .createQueryBuilder('proposer')
         .where('proposer.target_id = :id', { id })
         .andWhere(`proposer.apply_status = \'underReview\'`)
         .getCount();
-      console.log(count);
       return { message: '获取成功', status: false, statusCode: 200, data: { count } };
     } catch (err) {
       return { message: '获取失败', status: false, statusCode: 500, data: err };
@@ -146,17 +171,38 @@ export class FriendsService {
    * @param query
    * @param req
    */
-  async appliyList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Proposers[] | []>> {
-    page = page || 1;
-    page_size = page_size || 10;
-    let sql =
-      `SELECT SQL_CALC_FOUND_ROWS * FROM proposers 
-    WHERE apply_id = ${id} AND 'status'<>'agreement' ORDER BY id LIMIT` + pagination(page, page_size);
+  async applyList(
+    { page_size, page, type, keywords }: FriendsApplyListDto,
+    id: number
+  ): Promise<ReturnBody<Proposers[] | []>> {
+    page = page || defaultPage;
+    page_size = page_size || defaultPageSize;
+    type = type || 'underReview';
     try {
-      let result = await this.proposersRepository.query(sql);
-      let totalResult = await this.usersRepository.query('SELECT FOUND_ROWS()');
-      let total = totalResult[0]['FOUND_ROWS()'] * 1;
-      return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
+      let result = await this.proposersRepository
+        .createQueryBuilder('proposer')
+        .where('target_id = :id', { id })
+        .andWhere(
+          `apply_status = \'${type}\' ` +
+            (keywords
+              ? `AND (instr(json_extract(proposer.target_user,'$.username'), '${keywords}') > 0 OR instr(json_extract(proposer.target_user,'$.mobile'), '${keywords}') > 0)`
+              : '')
+        )
+        .getManyAndCount();
+      return { status: true, statusCode: 200, message: '获取成功', data: result[0], total: result[1], page, page_size };
+    } catch (err) {
+      return { status: false, statusCode: 500, message: '获取失败', data: err };
+    }
+  }
+
+  /**
+   * 获取申请列表详情
+   * @param id
+   */
+  async applyDetail(id: number): Promise<ReturnBody<Proposers | {}>> {
+    try {
+      let reulst = await this.proposersRepository.findOne({ id });
+      return { status: true, statusCode: 200, message: '获取成功', data: reulst };
     } catch (err) {
       return { status: false, statusCode: 500, message: '获取失败', data: err };
     }
@@ -165,25 +211,61 @@ export class FriendsService {
    * 处理添加好友申请
    * @param query
    */
-  async auditApply(query: FriendsAuditDto, id: string): Promise<ReturnBody<{}>> {
+  async auditApply(query: FriendsAuditDto, id: number, user_id: number): Promise<ReturnBody<Proposers | Friends | {}>> {
     let message = '';
+    let result: Friends | Proposers;
     try {
       switch (query.apply_status) {
         case 'agreement':
           message = '添加成功';
-          await this.proposersRepository.query(`UPDATE proposers SET apply_status=agreement WHERE id=${id}`);
-          Reflect.deleteProperty(query, 'message');
-          await this.friendsRepository.save(query);
+          // ids[0] = relation_id, ids[1] = contact_id
+          // relation_id = relation_user.id, contact_id = contact_user.id
+          let relation_id: number = 0;
+          let contact_id: number = 0;
+          let relation_user: object = {};
+          let contact_user: object = {};
+          let ids: string = '';
+          let apply_id: number = query.relation_id === user_id ? query.contact_id : query.relation_id;
+          if (query.relation_id < query.contact_id) {
+            relation_id = query.contact_id;
+            contact_id = query.relation_id;
+            ids = [contact_id, relation_id].join(',');
+            relation_user = query.contact_user;
+            contact_user = query.relation_user;
+          } else {
+            contact_id = query.relation_id;
+            relation_id = query.contact_id;
+            ids = [relation_id, contact_id].join(',');
+            contact_user = query.relation_user;
+            relation_user = query.contact_user;
+          }
+          result = await this.friendsRepository.save({
+            ids,
+            contact_id,
+            contact_user,
+            relation_id,
+            relation_user,
+            agree_id: user_id,
+            apply_id
+          });
+          await this.proposersRepository.query(
+            `UPDATE proposers SET apply_status='agreement,friend_id=${result.id}' WHERE id=${id}`
+          );
           break;
         case 'reject':
           message = '对方已拒绝';
-          await this.proposersRepository.query(`UPDATE proposers SET apply_status=reject WHERE id=${id}`);
+          let data = await this.proposersRepository.findOne({ id });
+          data.apply_status = 'reject';
+          result = await this.proposersRepository.save(data);
+          break;
+        default:
+          new Error('添加失败');
           break;
       }
     } catch (err) {
       return { status: false, statusCode: 500, data: err, message: '添加失败, 请重试' };
     }
-    return { statusCode: 200, message, status: true, data: {} };
+    return { statusCode: 200, message, status: true, data: result };
   }
 
   /**

@@ -6,17 +6,26 @@ export class Friends {
   @PrimaryGeneratedColumn({ comment: '主键id' })
   id: number;
 
-  @Column({ type: 'int', comment: '创建人的id(谁同意的)' })
+  @Column({ comment: '申请人和创建人的id 降序 逗号隔开' })
+  ids: string;
+
+  @Column({ type: 'int', comment: '双方id, 降序 id(0)' })
   relation_id: number;
 
-  @Column({ type: 'int', comment: '申请人的id' })
-  target_id: number;
+  @Column({ type: 'int', comment: '双方id, 降序 id(1)' })
+  contact_id: number;
 
-  @Column({ type: 'json', nullable: false, comment: '申请人的信息' })
-  target_user: object;
+  @Column({ type: 'int', comment: '申请用户id' })
+  apply_id: number;
 
-  @Column({ type: 'json', nullable: false, comment: '创建人的信息' })
+  @Column({ type: 'int', comment: '创建人用户id(谁同意的)' })
+  agree_id: number;
+
+  @Column({ type: 'json', nullable: false, comment: '用户1基本信息' })
   relation_user: object;
+
+  @Column({ type: 'json', nullable: false, comment: '用户2基本信息' })
+  contact_user: object;
 
   @OneToMany(
     type => Users,

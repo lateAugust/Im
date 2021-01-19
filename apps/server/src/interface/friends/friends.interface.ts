@@ -8,6 +8,7 @@ export interface FriendsSearchingInterface {
   frined_id: number | null;
   proposer_id: number | null;
   proposer_message: string | null;
+  proposer_apply_status: string | null;
 }
 
 export interface FriendsSearchingDetailRawInterface {
@@ -22,6 +23,7 @@ export interface FriendsSearchingDetailRawInterface {
   user_email: string | null;
   proposer_id: number | null;
   proposer_message: string | null;
+  proposer_apply_status: string | null;
 }
 
 export interface FriendsSearchingListInterface {
@@ -39,6 +41,7 @@ export interface FriendsSearchingListInterface {
   proposer: {
     id: number | null;
     message: string | null;
+    status: string | null;
   };
 }
 
@@ -57,6 +60,7 @@ export interface FriendsSearchingDetailInterface {
   proposer: {
     id: number | null;
     message: string | null;
+    status: string | null;
   };
 }
 

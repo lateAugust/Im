@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes, HttpCode, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService } from './friends.service';
-import { ApplyDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import { ApplyDto, FriendsApplyListDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
@@ -51,9 +51,10 @@ export class FriendsController {
   @Get('/searching/:id')
   async searchingDetail(
     @Param() param: { id: number },
-    @Query() query: { proposer_id: number }
+    @Query() query: { proposer_id: number },
+    @Request() req: RequestWidth
   ): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
-    return this.friendsService.searchingDetail(param.id, query.proposer_id);
+    return this.friendsService.searchingDetail(param.id, query.proposer_id, req.user.sub);
   }
 
   /**
@@ -62,7 +63,7 @@ export class FriendsController {
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })
   @HttpCode(200)
-  createApply(@Body() apply: ApplyDto): Promise<ReturnBody<{}>> {
+  createApply(@Body() apply: ApplyDto): Promise<ReturnBody<Proposers | {}>> {
     return this.friendsService.createApply(apply);
   }
 
@@ -71,7 +72,7 @@ export class FriendsController {
    */
   @Get('/apply/count')
   applyCount(@Request() req: RequestWidth): Promise<ReturnBody<FriendsApplyCountInterface>> {
-    return this.friendsService.appliyCount(req.user.sub);
+    return this.friendsService.applyCount(req.user.sub);
   }
 
   /**
@@ -83,20 +84,36 @@ export class FriendsController {
   @ApiOperation({ summary: '被申请的列表' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
   @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
-  async applyList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers[] | []>> {
-    return this.friendsService.appliyList(query, req.user.sub);
+  async applyList(
+    @Query() query: FriendsApplyListDto,
+    @Request() req: RequestWidth
+  ): Promise<ReturnBody<Proposers[] | []>> {
+    return this.friendsService.applyList(query, req.user.sub);
+  }
+
+  /**
+   * 申请添加用户列表详情
+   * @param param
+   */
+  @Get('/apply/list/:id')
+  async applyDetail(@Param() param: { id: number }): Promise<ReturnBody<Proposers | {}>> {
+    return this.friendsService.applyDetail(param.id);
   }
 
   /**
    * 处理添加好友申请
    * @param query
-   * @param id
+   * @param id proposer_id
    */
   @Put('/apply/:id')
   @HttpCode(200)
   @ApiOperation({ summary: '同意/拒绝申请' })
-  async auditApply(@Body() query: FriendsAuditDto, @Param() id: string): Promise<ReturnBody<{}>> {
-    return this.friendsService.auditApply(query, id);
+  async auditApply(
+    @Body() query: FriendsAuditDto,
+    @Param() param: { id: number },
+    @Request() req: RequestWidth
+  ): Promise<ReturnBody<Proposers | Friends | {}>> {
+    return this.friendsService.auditApply(query, param.id, req.user.sub);
   }
 
   /**

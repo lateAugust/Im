@@ -100,6 +100,9 @@ export class ApplyDto {
   @IsString({ message: 'apply_status字段类型错误, 只能是字符串' })
   @IsNotEmpty({ message: '申请的状态不能为空' })
   apply_status: string;
+
+  @IsString({ message: 'apply_status字段类型错误, 只能是字符串' })
+  is_review: string; // 重新申请
 }
 
 export class FriendsSearchingDto extends PagesDto {
@@ -111,14 +114,14 @@ export class FriendsSearchingDto extends PagesDto {
 
 export class FriendsAuditDto {
   @ApiProperty({ required: true })
-  // @IsInt({ message: 'relation_id字段类型错误, 只能是数字' })
-  @IsNotEmpty({ message: '添加目标用户relation_id不能为空' })
+  @IsInt({ message: 'relation_id字段类型错误, 只能是数字' })
+  @IsNotEmpty({ message: '申请方用户relation_id不能为空' })
   relation_id: number;
 
   @ApiProperty({ required: false, type: User })
   @IsObject()
   @Type(() => User)
-  target_user: User;
+  contact_user: User;
 
   @ApiProperty({ required: false, type: User })
   @IsObject()
@@ -126,13 +129,13 @@ export class FriendsAuditDto {
   relation_user: User;
 
   @ApiProperty({ required: true })
-  @IsInt({ message: 'target_id字段类型错误, 只能是数字' })
-  @IsNotEmpty({ message: '添加目标用户target_id不能为空' })
-  target_id: number;
+  @IsInt({ message: 'contact_id字段类型错误, 只能是数字' })
+  @IsNotEmpty({ message: '当前登录用户contact_id不能为空' })
+  contact_id: number;
 
   @ApiProperty({ required: false })
-  @IsInt({ message: '用户proposers_id必须是数字类型' })
-  @IsNotEmpty({ message: 'proposers_id不能为空' })
+  @IsInt({ message: '当前列表id必须是数字类型' })
+  @IsNotEmpty({ message: '当前列表id不能为空' })
   proposers_id: number;
 
   @ApiProperty({ required: false })
@@ -146,4 +149,14 @@ export class FriendsAuditDto {
   @IsString({ message: 'apply_status字段类型错误, 只能是字符串' })
   @IsNotEmpty({ message: '申请的状态不能为空' })
   apply_status: string;
+}
+
+export class FriendsApplyListDto extends PagesDto {
+  @IsEnum(['underReview', 'reject', 'agreement', ''], {
+    message: '申请设置错误, 只能是underReview, reject, agreement和空, 默认underReview'
+  })
+  type: string;
+
+  @IsString({ message: 'keywords字段类型错误, 只能是字符串' })
+  keywords: string;
 }

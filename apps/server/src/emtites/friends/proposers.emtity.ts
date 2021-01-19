@@ -12,6 +12,9 @@ export class Proposers {
   @Column({ comment: '申请方用户id' })
   apply_id: number;
 
+  @Column({ comment: 'friends_id', nullable: true })
+  friend_id: number;
+
   @Column({ length: 255, default: null, comment: '附加消息' })
   message: string;
 
