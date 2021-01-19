@@ -53,7 +53,9 @@ export function processIncludeUnderlineKeyObject<T, C>(array: T[]): C[] {
   for (let item of array) {
     let obj = {};
     for (let [key, val] of Object.entries(item)) {
-      let [prop, props] = processUnderlineKey(key);
+      let keys = processUnderlineKey(key);
+      let prop = keys[0];
+      let props = keys[keys.length - 1];
       obj[prop] = obj[prop] || {};
       obj[prop][props] = val;
     }
