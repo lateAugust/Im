@@ -1,6 +1,7 @@
 export interface FriendsSearchingInterface {
   user_id: number;
   user_username: string;
+  user_pin_yin: string;
   user_nickname: string | null;
   user_age: number | null;
   user_gender: number | null;
@@ -11,28 +12,14 @@ export interface FriendsSearchingInterface {
   proposer_apply_status: string | null;
 }
 
-export interface FriendsSearchingDetailRawInterface {
-  user_id: number;
-  user_username: string;
-  user_age: number | null;
-  user_gender: number | null;
-  user_nickname: string | null;
-  user_mobile: string | null;
-  user_avatar: string | null;
-  user_address: string | null;
-  user_email: string | null;
-  proposer_id: number | null;
-  proposer_message: string | null;
-  proposer_apply_status: string | null;
-}
-
-export interface FriendsSearchingListInterface {
+export interface FriendsSearchingBodyInterface {
   friend: {
     id: number | null;
   };
   user: {
     id: number;
     username: string;
+    pin_yin: string;
     nickname: string | null;
     age: number | null;
     avatar: string | null;
@@ -41,29 +28,9 @@ export interface FriendsSearchingListInterface {
   proposer: {
     id: number | null;
     message: string | null;
-    status: string | null;
+    apply_status: string | null;
   };
 }
-
-export interface FriendsSearchingDetailInterface {
-  user: {
-    id: number;
-    username: string;
-    nickname: string | null;
-    age: number | null;
-    avatar: string | null;
-    gender: string | null;
-    mobile: string | null;
-    email: string | null;
-    address: string | null;
-  };
-  proposer: {
-    id: number | null;
-    message: string | null;
-    status: string | null;
-  };
-}
-
 export interface FriendsApplyCountInterface {
   count: number;
 }

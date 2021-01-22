@@ -5,11 +5,7 @@ import { ApplyDto, FriendsApplyListDto, FriendsAuditDto, FriendsSearchingDto } f
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
-import {
-  FriendsSearchingListInterface,
-  FriendsSearchingDetailInterface,
-  FriendsApplyCountInterface
-} from '../../interface/friends/friends.interface';
+import { FriendsSearchingBodyInterface, FriendsApplyCountInterface } from '../../interface/friends/friends.interface';
 
 import { Users } from '../../emtites/users/users.entity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
@@ -39,7 +35,7 @@ export class FriendsController {
   async searching(
     @Query() query: FriendsSearchingDto,
     @Request() req: RequestWidth
-  ): Promise<ReturnBody<FriendsSearchingListInterface[] | []>> {
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface[] | []>> {
     return this.friendsService.searching(query, req.user.sub);
   }
 
@@ -53,7 +49,7 @@ export class FriendsController {
     @Param() param: { id: number },
     @Query() query: { proposer_id: number },
     @Request() req: RequestWidth
-  ): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface | {}>> {
     return this.friendsService.searchingDetail(param.id, query.proposer_id, req.user.sub);
   }
 

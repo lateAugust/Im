@@ -11,10 +11,8 @@ import { pagination, processIncludeUnderlineKeyObject, sortReturnString } from '
 
 import {
   FriendsSearchingInterface,
-  FriendsSearchingListInterface,
-  FriendsSearchingDetailInterface,
-  FriendsSearchingDetailRawInterface,
-  FriendsApplyCountInterface
+  FriendsApplyCountInterface,
+  FriendsSearchingBodyInterface
 } from '../../interface/friends/friends.interface';
 
 const env = process.env;
@@ -38,7 +36,7 @@ export class FriendsService {
   async searching(
     { page, page_size, keywords }: FriendsSearchingDto,
     id: number
-  ): Promise<ReturnBody<FriendsSearchingListInterface[] | []>> {
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface[] | []>> {
     page = page || defaultPage;
     page_size = page_size || defaultPageSize;
     try {
@@ -49,11 +47,7 @@ export class FriendsService {
           'friend',
           `IF( ${id} > user.id, CONCAT( user.id, ',', ${id} ), CONCAT( ${id}, ',', user.id )) = friend.ids`
         )
-        .leftJoinAndSelect(
-          'proposers',
-          'proposer',
-          "user.id = proposer.target_id AND proposer.apply_status <> 'agreement'"
-        )
+        .leftJoinAndSelect('proposers', 'proposer', `user.id = proposer.apply_id AND proposer.target_id = ${id}`)
         .distinct(true)
         .select([
           'user.id',
@@ -62,18 +56,20 @@ export class FriendsService {
           'user.avatar',
           'user.gender',
           'user.age',
+          'user.pin_yin',
           'proposer.id',
           'proposer.message',
           'friend.id',
           'proposer.apply_status'
         ])
-        .where('user.id <> :id', { id })
-        .andWhere(`instr(user.username, '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0`)
+        .where(
+          `user.id <> ${id} AND (instr(IF(user.nickname IS NULL,user.username,user.nickname), '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0)`
+        )
         .skip(Math.max(0, page - 1) * page_size)
         .take(page_size);
       let list = await builder.getRawMany<FriendsSearchingInterface>();
       let count = await builder.getCount();
-      let data = processIncludeUnderlineKeyObject<FriendsSearchingInterface, FriendsSearchingListInterface>(list);
+      let data = processIncludeUnderlineKeyObject<FriendsSearchingInterface, FriendsSearchingBodyInterface>(list);
       return { status: true, statusCode: 200, message: '获取成功', data, total: count, page, page_size };
     } catch (err) {
       return { message: '网络错误, 请重试', status: false, statusCode: 500, data: err };
@@ -89,7 +85,7 @@ export class FriendsService {
     id: number,
     proposer_id: number,
     user_id: number
-  ): Promise<ReturnBody<FriendsSearchingDetailInterface | {}>> {
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface | {}>> {
     try {
       let builder = await this.usersRepository
         .createQueryBuilder('user')
@@ -98,7 +94,7 @@ export class FriendsService {
           'friend',
           `IF( ${user_id} > user.id, CONCAT( user.id, ',', ${user_id} ), CONCAT( ${user_id}, ',', user.id )) = friend.ids`
         )
-        .leftJoin('proposers', 'proposer', "user.id = proposer.target_id AND proposer.apply_status <> 'agreement'")
+        .leftJoin('proposers', 'proposer', `user.id = proposer.apply_id AND proposer.target_id = ${id}`)
         .distinct(true)
         .select([
           'user.id',
@@ -106,6 +102,7 @@ export class FriendsService {
           'user.nickname',
           'user.age',
           'user.gender',
+          'user.pin_yin',
           'user.avatar',
           'user.mobile',
           'user.email',
@@ -116,10 +113,8 @@ export class FriendsService {
           'friend.id'
         ])
         .where('user.id = :id', { id });
-      let user = await builder.getRawOne<FriendsSearchingDetailRawInterface>();
-      let data = processIncludeUnderlineKeyObject<FriendsSearchingDetailRawInterface, FriendsSearchingListInterface>([
-        user
-      ])[0];
+      let user = await builder.getRawOne<FriendsSearchingInterface>();
+      let data = processIncludeUnderlineKeyObject<FriendsSearchingInterface, FriendsSearchingBodyInterface>([user])[0];
       return { status: true, statusCode: 200, message: '获取成功', data };
     } catch (err) {
       return { message: '获取失败', status: false, statusCode: 500, data: err };
@@ -185,7 +180,7 @@ export class FriendsService {
         .andWhere(
           `apply_status = \'${type}\' ` +
             (keywords
-              ? `AND (instr(json_extract(proposer.target_user,'$.username'), '${keywords}') > 0 OR instr(json_extract(proposer.target_user,'$.mobile'), '${keywords}') > 0)`
+              ? `AND (instr(json_extract(proposer.apply_user,IF('$.nickname' IS NULL,'$.username','$.nickname')), '${keywords}') > 0 OR instr(json_extract(proposer.target_user,'$.mobile'), '${keywords}') > 0)`
               : '')
         )
         .getManyAndCount();
