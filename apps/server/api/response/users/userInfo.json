@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": {
+      "type": "number",
+      "description": "修改成功http状态码(200|400)",
+      "default": "200",
+      "minimum": 200,
+      "maximum": 504
+    },
+    "message": { "type": "string", "description": "操作提示语(修改成功|用户名已存在|修改失败)" },
+    "data": { "type": "object", "properties": {}, "description": "{}" }
+  },
+  "required": ["status", "statusCode", "message"]
+}

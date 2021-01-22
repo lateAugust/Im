@@ -20,6 +20,7 @@
           "properties": {
             "id": { "type": "number", "description": "用户id" },
             "username": { "type": "string", "description": "用户名" },
+            "pin_yin": { "type": "string", "description": "用户名拼音" },
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "女,男,保密" },
@@ -33,6 +34,7 @@
           "properties": {
             "id": { "type": "number", "description": "用户id" },
             "username": { "type": "string", "description": "用户名" },
+            "pin_yin": { "type": "string", "description": "用户名拼音" },
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "女,男,保密" },
@@ -70,6 +72,7 @@
           "properties": {
             "id": { "type": "number", "description": "用户id" },
             "username": { "type": "string", "description": "用户名" },
+            "pin_yin": { "type": "string", "description": "用户名拼音" },
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "女,男,保密" },
@@ -83,6 +86,7 @@
           "properties": {
             "id": { "type": "number", "description": "用户id" },
             "username": { "type": "string", "description": "用户名" },
+            "pin_yin": { "type": "string", "description": "用户名拼音" },
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "女,男,保密" },

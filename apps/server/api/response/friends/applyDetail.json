@@ -18,26 +18,28 @@
           "properties": {
             "id": { "type": "number", "description": "用户id" },
             "username": { "type": "string", "description": "用户名" },
+            "pin_yin": { "type": "string", "description": "用户名拼音" },
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "女,男,保密" },
             "avatar": { "type": "string", "description": "头像" }
           },
           "description": "申请的用户信息(当前登录用户)",
-          "required": ["id", "username"]
+          "required": ["id", "username", "pin_yin"]
         },
         "apply_user": {
           "type": "object",
           "properties": {
             "id": { "type": "number", "description": "用户id" },
             "username": { "type": "string", "description": "用户名" },
+            "pin_yin": { "type": "string", "description": "用户名拼音" },
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "女,男,保密" },
             "avatar": { "type": "string", "description": "头像" }
           },
           "description": "申请方用户信息",
-          "required": ["id", "username"]
+          "required": ["id", "username", "pin_yin"]
         },
         "create_at": { "type": "string", "description": "创建时间" },
         "update_at": { "type": "string", "description": "更新时间" }

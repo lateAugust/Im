@@ -2,40 +2,43 @@
   "type": "object",
   "title": "empty object",
   "properties": {
-    "relation_id": { "type": "number", "description": "申请方的用户id" },
-    "contact_id": { "type": "number", "description": "当前登录用户id" },
-    "proposers_id": { "type": "number", "description": "当前列表id" },
-    "apply_status": { "type": "string", "description": "状态(reject拒绝,agreement同意)" },
-    "message": { "type": "string", "description": "只有拒绝时需要添加附加信息" },
-    "relation_user": {
+    "apply_id": { "type": "number", "description": "申请方的用户id" },
+    "target_id": { "type": "number", "description": "被申请用户id" },
+    "proposers_id": { "type": "number", "description": "已申请列表id" },
+    "apply_status": { "type": "string", "description": "状态(underReView)" },
+    "message": { "type": "string", "description": "附加信息" },
+    "apply_user": {
       "type": "object",
+      "title": "empty object",
+      "description": "申请用户信息",
       "properties": {
         "id": { "type": "number", "description": "用户id" },
         "username": { "type": "string", "description": "用户名" },
         "pin_yin": { "type": "string", "description": "用户名拼音" },
         "nickname": { "type": "string", "description": "昵称" },
         "age": { "type": "number", "description": "年龄" },
-        "gender": { "type": "string", "description": "女,男,保密" },
+        "gender": { "type": "string", "description": "性别" },
         "avatar": { "type": "string", "description": "头像" }
       },
-      "description": "申请方的用户信息",
       "required": ["id", "username", "pin_yin"]
     },
-    "contact_user": {
+    "is_review": { "type": "string", "description": "被拒绝后重新申请需要, is_review=reject" },
+    "target_user": {
       "type": "object",
+      "title": "empty object",
+      "description": "被申请用户信息",
       "properties": {
         "id": { "type": "number", "description": "用户id" },
         "username": { "type": "string", "description": "用户名" },
         "pin_yin": { "type": "string", "description": "用户名拼音" },
         "nickname": { "type": "string", "description": "昵称" },
         "age": { "type": "number", "description": "年龄" },
-        "gender": { "type": "string", "description": "女,男,保密" },
+        "gender": { "type": "string", "description": "性别" },
         "avatar": { "type": "string", "description": "头像" }
       },
-      "description": "当前登录用户",
       "required": ["id", "username", "pin_yin"]
     }
   },
-  "required": ["proposers_id", "relation_id", "contact_id", "apply_status", "contact_user"],
+  "required": ["apply_id", "target_id", "apply_status", "target_user", "apply_user"],
   "description": "同意/拒绝好友请求操作"
 }

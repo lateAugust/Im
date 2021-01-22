@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "username": { "type": "string", "description": "用户名称,2-10任意字符" },
+    "password": { "type": "string", "description": "密码6-16位任意字符" }
+  },
+  "description": "登录信息",
+  "required": ["username", "password"]
+}

@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "username": { "type": "string", "description": "用户名称,2-10任意字符" },
+    "pin_yin": { "type": "string", "description": "包含中文时的拼音, _连接" },
+    "password": { "type": "string", "description": "密码6-16位任意字符" },
+    "confirm_password": { "type": "string", "description": "确认密码6-16位任意字符" }
+  },
+  "description": "注册信息",
+  "required": ["username", "pin_yin", "password", "confirm_password"]
+}

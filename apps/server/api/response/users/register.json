@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": { "type": "number", "default": "200", "description": "操作http状态码(200|400|500)" },
+    "message": { "type": "string", "description": "操作提示语(注册成功|少参数或用户名重复)" },
+    "data": { "type": "object", "properties": {}, "description": "{}" }
+  },
+  "required": ["data"]
+}
