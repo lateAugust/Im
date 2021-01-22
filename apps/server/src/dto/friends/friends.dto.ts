@@ -29,6 +29,11 @@ class User {
   @IsNotEmpty({ message: '用户名不能为空' })
   username: string;
 
+  @ApiProperty({ required: true })
+  @IsString({ message: 'pin_yin字段类型错误, 只能是字符串' })
+  @IsNotEmpty({ message: 'pin_yin不能为空' })
+  pin_yin: string;
+
   @ApiProperty({ required: false })
   @MaxLength(10, { message: '昵称长度不能大于10' })
   @MinLength(2, { message: '昵称长度不能小于2' })

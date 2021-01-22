@@ -34,6 +34,9 @@ export class Users {
   @Column({ length: 255, default: null, comment: '头像地址' })
   avatar: string;
 
+  @Column({ length: 255, default: null, comment: '用户名拼音,用_连接' })
+  pin_yin: string;
+
   @OneToMany(
     type => Friends,
     friend => friend.user

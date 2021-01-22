@@ -41,15 +41,25 @@ export class CreateUsersRegisterDto extends CreateUsersBaseDto {
   @IsString({ message: 'confirm_password字段类型错误, 只能是字符串' })
   @IsNotEmpty({ message: '确认密码不能为空' })
   confirm_password: string;
+
+  @ApiProperty()
+  @IsString({ message: 'pin_yin字段类型错误, 只能是字符串' })
+  @IsNotEmpty({ message: 'pin_yin不能为空' })
+  pin_yin: string;
 }
 
 export class SetUserInfoDto {
-  @ApiProperty({ required: false })
+  @ApiProperty()
   @MinLength(2, { message: '用户名长度不能小于2' })
   @MaxLength(10, { message: '用户名长度不能大于10' })
   @IsString({ message: 'username字段类型错误, 只能是字符串' })
   @IsNotEmpty({ message: '用户名不能为空' })
   username: string;
+
+  @ApiProperty()
+  @IsString({ message: 'pin_yin字段类型错误, 只能是字符串' })
+  @IsNotEmpty({ message: 'pin_yin不能为空' })
+  pin_yin: string;
 
   @ApiProperty({ required: false })
   @MinLength(2, { message: '昵称长度不能小于2' })
