@@ -55,7 +55,8 @@ export function processIncludeUnderlineKeyObject<T, C>(array: T[]): C[] {
     for (let [key, val] of Object.entries(item)) {
       let keys = processUnderlineKey(key);
       let prop = keys[0];
-      let props = keys[keys.length - 1];
+      keys.splice(0, 1); // 删除第一个, 其他的为了防止pin_yin这种, 按照原字段名返回
+      let props = keys.join('_');
       obj[prop] = obj[prop] || {};
       obj[prop][props] = val;
     }
