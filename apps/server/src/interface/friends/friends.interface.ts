@@ -10,6 +10,7 @@ export interface FriendsSearchingInterface {
   proposer_id: number | null;
   proposer_message: string | null;
   proposer_apply_status: string | null;
+  proposer_target_id: number | null;
 }
 
 export interface FriendsSearchingBodyInterface {
@@ -29,6 +30,7 @@ export interface FriendsSearchingBodyInterface {
     id: number | null;
     message: string | null;
     apply_status: string | null;
+    target_id: number | null;
   };
 }
 export interface FriendsApplyCountInterface {

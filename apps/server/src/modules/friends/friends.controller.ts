@@ -59,8 +59,8 @@ export class FriendsController {
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })
   @HttpCode(200)
-  createApply(@Body() apply: ApplyDto): Promise<ReturnBody<Proposers | {}>> {
-    return this.friendsService.createApply(apply);
+  createApply(@Body() apply: ApplyDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers | {}>> {
+    return this.friendsService.createApply(apply, req.user.sub);
   }
 
   /**

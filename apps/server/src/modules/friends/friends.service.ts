@@ -40,6 +40,11 @@ export class FriendsService {
     page = page || defaultPage;
     page_size = page_size || defaultPageSize;
     try {
+      // 查询的逻辑, 先去检索users表, 然后用users.id和当前登录的用户id降序排序拼接成ids
+      // 再是users.id和proposer.target_id比较; 如果等于, 那么说明是申请用户在继续查询; 不等于说明是被申请方在查询;
+      // 那么对应的按钮逻辑就是:
+      //     申请方: 未添加过是添加; 添加了但是还没通过是申请中, 此时可以修改message 同意了是发消息;
+      //     被申请方: 自己还未同意是待验证, 进到同意页面; 同意了是发消息; 如果拒绝了就是已拒绝
       const builder = await this.usersRepository
         .createQueryBuilder('user')
         .leftJoinAndSelect(
@@ -47,7 +52,11 @@ export class FriendsService {
           'friend',
           `IF( ${id} > user.id, CONCAT( user.id, ',', ${id} ), CONCAT( ${id}, ',', user.id )) = friend.ids`
         )
-        .leftJoinAndSelect('proposers', 'proposer', `user.id = proposer.apply_id AND proposer.target_id = ${id}`)
+        .leftJoinAndSelect(
+          'proposers',
+          'proposer',
+          `IF(user.id = proposer.target_id,user.id = proposer.target_id AND proposer.apply_id = ${id},user.id=proposer.apply_id AND proposer.target_id = ${id})`
+        )
         .distinct(true)
         .select([
           'user.id',
@@ -60,7 +69,8 @@ export class FriendsService {
           'proposer.id',
           'proposer.message',
           'friend.id',
-          'proposer.apply_status'
+          'proposer.apply_status',
+          'proposer.target_id'
         ])
         .where(
           `user.id <> ${id} AND (instr(IF(user.nickname IS NULL,user.username,user.nickname), '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0)`
@@ -94,7 +104,7 @@ export class FriendsService {
           'friend',
           `IF( ${user_id} > user.id, CONCAT( user.id, ',', ${user_id} ), CONCAT( ${user_id}, ',', user.id )) = friend.ids`
         )
-        .leftJoin('proposers', 'proposer', `user.id = proposer.apply_id AND proposer.target_id = ${id}`)
+        .leftJoin('proposers', 'proposer', `proposer.id = ${proposer_id}`)
         .distinct(true)
         .select([
           'user.id',
@@ -110,6 +120,7 @@ export class FriendsService {
           'proposer.id',
           'proposer.message',
           'proposer.apply_status',
+          'proposer.target_id',
           'friend.id'
         ])
         .where('user.id = :id', { id });
@@ -124,16 +135,17 @@ export class FriendsService {
   /**
    * 创建/修改(message)/重新申请/好友申请
    */
-  async createApply(params: ApplyDto): Promise<ReturnBody<Proposers | {}>> {
+  async createApply(params: ApplyDto, id: number): Promise<ReturnBody<Proposers | {}>> {
     try {
       let message = '申请已发送';
       let result: Proposers;
+      let isReject = params.is_review !== 'reject';
       if (params.proposers_id) {
-        message = params.is_review === 'reject' ? '申请已发送' : '修改成功';
+        if (isReject) message = '修改成功';
         let data = await this.proposersRepository.findOne({ id: params.proposers_id });
-        result = await this.proposersRepository.save(
-          Object.assign({}, data, { message: params.message, apply_status: params.apply_status })
-        );
+        let _params = { ...params };
+        Reflect.deleteProperty(_params, 'proposers_id');
+        result = await this.proposersRepository.save(Object.assign({}, data, _params));
       } else {
         result = await this.proposersRepository.save(params);
       }
@@ -244,11 +256,11 @@ export class FriendsService {
             apply_id
           });
           await this.proposersRepository.query(
-            `UPDATE proposers SET apply_status='agreement,friend_id=${result.id}' WHERE id=${id}`
+            `UPDATE proposers SET apply_status='agreement',friend_id=${result.id} WHERE id=${id}`
           );
           break;
         case 'reject':
-          message = '对方已拒绝';
+          message = '已拒绝';
           let data = await this.proposersRepository.findOne({ id });
           data.apply_status = 'reject';
           result = await this.proposersRepository.save(data);
