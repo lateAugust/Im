@@ -16,9 +16,9 @@ export class UsersService {
   getHello(): string {
     return 'hello users';
   }
-  async register({ username, password }: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
+  async register({ username, password, pin_yin }: CreateUsersRegisterDto): Promise<ReturnBody<{}>> {
     try {
-      let result = await this.usersRepository.save({ username, password });
+      let result = await this.usersRepository.save({ username, password, pin_yin });
       return { status: true, statusCode: 200, message: '注册成功', data: result };
     } catch (e) {
       let message = '';
