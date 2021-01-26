@@ -1,11 +1,22 @@
 import { Body, Controller, Get, Post, Put, UseGuards, Request, Query, UsePipes, HttpCode, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService } from './friends.service';
-import { ApplyDto, FriendsApplyListDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import {
+  ApplyDto,
+  FriendsApplyListDto,
+  FriendsAuditDto,
+  FriendsDetailDeto,
+  FriendsSearchingDto
+} from '../../dto/friends/friends.dto';
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnBody } from '../../utils/return-body';
-import { FriendsSearchingBodyInterface, FriendsApplyCountInterface } from '../../interface/friends/friends.interface';
+import {
+  FriendsSearchingBodyInterface,
+  FriendsApplyCountInterface,
+  FriendsListBodyInterface,
+  FriendsListDetailInterFace
+} from '../../interface/friends/friends.interface';
 
 import { Users } from '../../emtites/users/users.entity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
@@ -121,7 +132,12 @@ export class FriendsController {
   @ApiOperation({ summary: '朋友列表' })
   @ApiQuery({ name: 'page', description: '页码', required: false })
   @ApiQuery({ name: 'page_size', description: '页码数量', required: false })
-  async friendsList(@Query() query: PagesDto, @Request() req: RequestWidth): Promise<ReturnBody<Friends[] | []>> {
-    return this.friendsService.friendsList(query, req.user.sub);
+  async friendsList(@Request() req: RequestWidth): Promise<ReturnBody<FriendsListBodyInterface[]>> {
+    return this.friendsService.friendsList(req.user.sub);
+  }
+
+  @Get('/detail')
+  async friendsDetail(@Query() query: FriendsDetailDeto): Promise<ReturnBody<FriendsListDetailInterFace>> {
+    return this.friendsService.friendsDetail(query);
   }
 }

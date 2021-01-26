@@ -2,7 +2,13 @@ import { Injectable, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createQueryBuilder, Repository, QueryFailedError } from 'typeorm';
 import { PagesDto } from '../../dto/common/pages.dto';
-import { ApplyDto, FriendsApplyListDto, FriendsAuditDto, FriendsSearchingDto } from '../../dto/friends/friends.dto';
+import {
+  ApplyDto,
+  FriendsApplyListDto,
+  FriendsAuditDto,
+  FriendsDetailDeto,
+  FriendsSearchingDto
+} from '../../dto/friends/friends.dto';
 import { Friends } from '../../emtites/friends/friends.emtity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
 import { Users } from '../../emtites/users/users.entity';
@@ -12,7 +18,10 @@ import { pagination, processIncludeUnderlineKeyObject, sortReturnString } from '
 import {
   FriendsSearchingInterface,
   FriendsApplyCountInterface,
-  FriendsSearchingBodyInterface
+  FriendsSearchingBodyInterface,
+  FriendsListInterface,
+  FriendsListBodyInterface,
+  FriendsListDetailInterFace
 } from '../../interface/friends/friends.interface';
 
 const env = process.env;
@@ -280,17 +289,79 @@ export class FriendsService {
    * @param query
    * @param req
    */
-  async friendsList({ page_size, page }: PagesDto, id: number): Promise<ReturnBody<Friends[] | []>> {
-    page_size = page_size || 10;
-    page = page || 1;
-    let sql =
-      `SELECT SQL_CALC_FOUND_ROWS * FROM friends 
-    WHERE relation_id = ${id} OR target_id = ${id} ORDER BY id LIMIT` + pagination(page, page_size);
+  async friendsList(id: number): Promise<ReturnBody<FriendsListBodyInterface[]>> {
     try {
-      let result = await this.proposersRepository.query(sql);
-      let totalResult = await this.usersRepository.query('SELECT FOUND_ROWS()');
-      let total = totalResult[0]['FOUND_ROWS()'] * 1;
-      return { status: true, statusCode: 200, message: '获取成功', data: result, total, page, page_size };
+      let builder = await this.friendsRepository
+        .createQueryBuilder('friend')
+        .leftJoin('users', 'user', 'friend.relation_id = user.id OR friend.contact_id = user.id')
+        .distinct(true)
+        .select([
+          'user.id',
+          'user.username',
+          'user.age',
+          'user.gender',
+          'user.avatar',
+          'user.pin_yin',
+          'user.nickname',
+          'friend.id',
+          'friend.apply_id',
+          'friend.relation_id',
+          'friend.agree_id',
+          'friend.contact_id',
+          'friend.update_at',
+          'friend.create_at'
+        ])
+        .where(
+          `(friend.relation_id = user.id AND friend.contact_id = ${id}) OR (friend.contact_id = user.id AND friend.relation_id = ${id})`
+        )
+        .orderBy(`CONVERT(user.pin_yin USING gbk)`, 'ASC');
+      // where 如果relation_id/contact_id 和当前登录用户id对得上, 说明是建立了好友关系的, 返回的就是当前用户
+      // 利用关联外连接查询, 以friends表为主, users为辅, leftJoin先查询符合的user, 建立临时表, 再到下面的where筛选一次
+      let total = await builder.getCount();
+      let list = await builder.getRawMany<FriendsListInterface>();
+      let data = processIncludeUnderlineKeyObject<FriendsListInterface, FriendsListBodyInterface>(list);
+      return {
+        status: true,
+        statusCode: 200,
+        message: '获取成功',
+        data,
+        total
+      };
+    } catch (err) {
+      return { status: false, statusCode: 500, message: '获取失败', data: err };
+    }
+  }
+
+  async friendsDetail(query: FriendsDetailDeto): Promise<ReturnBody<FriendsListDetailInterFace>> {
+    try {
+      let result = await this.friendsRepository
+        .createQueryBuilder('friend')
+        .leftJoin('users', 'user', `user.id = ${query.user_id}`)
+        .select([
+          'user.id',
+          'user.username',
+          'user.nickname',
+          'user.avatar',
+          'user.pin_yin',
+          'user.gender',
+          'user.age',
+          'user.mobile',
+          'user.address',
+          'user.email',
+          'user.create_at',
+          'friend.id',
+          'friend.apply_id',
+          'friend.relation_id',
+          'friend.agree_id',
+          'friend.contact_id',
+          'friend.update_at',
+          'friend.create_at'
+        ])
+        .where(`friend.id = ${query.friend_id}`)
+        .getRawOne<FriendsListDetailInterFace>();
+
+      let data = processIncludeUnderlineKeyObject<FriendsListDetailInterFace, FriendsListDetailInterFace>([result]);
+      return { status: true, statusCode: 200, message: '获取成功', data: data[0] };
     } catch (err) {
       return { status: false, statusCode: 500, message: '获取失败', data: err };
     }

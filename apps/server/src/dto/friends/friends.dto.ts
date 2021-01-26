@@ -165,3 +165,13 @@ export class FriendsApplyListDto extends PagesDto {
   @IsString({ message: 'keywords字段类型错误, 只能是字符串' })
   keywords: string;
 }
+
+export class FriendsDetailDeto {
+  // @IsInt({ message: 'friend_id字段类型错误, 只能是number' })
+  @IsNotEmpty({ message: 'friend_id不能为空' })
+  friend_id: string;
+
+  // @IsInt({ message: 'user_id字段类型错误, 只能是number' })
+  @IsNotEmpty({ message: 'user_id不能为空' })
+  user_id: string;
+}
