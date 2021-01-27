@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": { "type": "number", "description": "操作状态码(200)", "default": "200" },
+    "message": { "type": "string", "description": "操作提示语(获取成功|获取失败)" },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "friend": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "number", "description": "用户id" },
+              "agree_id": { "type": "number", "description": "同意用户id" },
+              "apply_id": { "type": "number", "description": "申请用户id" },
+              "contact_id": { "type": "number", "description": "用户id1" },
+              "relation_id": { "type": "number", "description": "用户id2" },
+              "create_at": { "type": "string", "description": "创建时间" },
+              "update_at": { "type": "string", "description": "更新时间" }
+            },
+            "description": "朋友列表信息",
+            "required": ["id", "agree_id", "apply_id", "contact_id", "relation_id", "create_at", "update_at"]
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "number", "description": "用户id" },
+              "username": { "type": "string", "description": "用户名" },
+              "pin_yin": { "type": "string", "description": "用户名拼音" },
+              "nickname": { "type": "string", "description": "昵称" },
+              "age": { "type": "number", "description": "年龄" },
+              "gender": { "type": "string", "description": "女,男,保密" },
+              "avatar": { "type": "string", "description": "头像" }
+            },
+            "description": "好友信息",
+            "required": ["id", "username", "pin_yin"]
+          }
+        },
+        "required": ["friend", "user"]
+      },
+      "description": "朋友列表"
+    }
+  },
+  "required": ["data"]
+}
