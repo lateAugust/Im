@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": { "type": "number", "description": "操作状态码(200)", "default": "200" },
+    "message": { "type": "string", "description": "操作提示语()" },
+    "page": { "type": "number", "description": "页码" },
+    "page_size": { "type": "number", "description": "该页数量" },
+    "data": {
+      "type": "array",
+      "properties": {},
+      "description": "历史消息列表",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number", "description": "列表id" },
+          "message": { "type": "string", "description": "消息内容" },
+          "send_id": { "type": "number", "description": "发送方id" },
+          "receive_id": { "type": "number", "description": "接收方id" },
+          "update_at": { "type": "string", "description": "更新时间" },
+          "create_at": { "type": "string", "description": "创建时间" }
+        },
+        "required": ["id", "send_id", "receive_id", "update_at", "create_at", "message"]
+      }
+    }
+  }
+}
