@@ -64,3 +64,11 @@ export function processIncludeUnderlineKeyObject<T, C>(array: T[]): C[] {
   }
   return list;
 }
+
+export function transferToString(data: any): string {
+  return JSON.stringify(data);
+}
+
+export function transferToObject<T>(data: string): T {
+  return JSON.parse(data);
+}
