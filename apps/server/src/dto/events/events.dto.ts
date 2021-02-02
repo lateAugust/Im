@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsString, IsObject, IsInt, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Timestamp } from 'typeorm';
 
 class User {
   @IsInt({ message: 'id字段类型错误, 必须是个数字' })
@@ -29,24 +30,23 @@ export class EventsMessageDto {
   @IsNotEmpty({ message: '消息内容是必须的' })
   message: string;
 
-  @IsInt({ message: 'send_id字段类型错误, 必须是个数字' })
+  @IsInt({ message: 'send_id字段类型错误, 必须是数字类型' })
   @IsNotEmpty({ message: '发送方id是必须的' })
   send_id: number;
 
-  @IsInt({ message: 'receive_id字段类型错误, 必须是个数字' })
+  @IsInt({ message: 'receive_id字段类型错误, 必须是数字类型' })
   @IsNotEmpty({ message: '接收方id是必须的' })
   receive_id: number;
 
-  @IsInt({ message: 'links_id字段类型错误, 必须是个数字' })
+  @IsInt({ message: 'links_id字段类型错误, 必须是数字类型' })
   links_id?: number;
 
+  @IsInt({ message: 'message_id字段类型错误, 必须是数字类型' })
   message_id?: number;
 
-  @Type(() => User)
-  @IsObject()
-  send_user: User;
+  id?: number;
 
-  @Type(() => User)
-  @IsObject()
-  receive_user: User;
+  update_at?: Timestamp;
+
+  create_at?: Timestamp;
 }
