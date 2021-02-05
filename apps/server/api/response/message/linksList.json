@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "title": "empty object",
+  "properties": {
+    "status": { "type": "boolean", "description": "操作状态(true|false)", "default": true },
+    "statusCode": { "type": "number", "description": "操作状态码(200)", "default": "200" },
+    "message": { "type": "string", "description": "操作提示语(获取成功|获取失败)" },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "link": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "number", "description": "id" },
+              "unread_count": { "type": "number", "description": "消息未读合计" },
+              "receive_id": { "type": "number", "description": "接收方id" },
+              "send_id": { "type": "number", "description": "发送方id" },
+              "type": { "type": "string", "description": "消息类型 message|notification" },
+              "title": { "type": "string", "description": "如果是验证消息(type=notification), 那么会有这个标题" },
+              "message": { "type": "string", "description": "消息内容" },
+              "create_at": { "type": "string", "description": "创建时间" },
+              "update_at": { "type": "string", "description": "修改时间" }
+            },
+            "description": "聊天列表消息",
+            "required": ["id", "unread_count", "receive_id", "message", "type"]
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "number", "description": "用户id" },
+              "username": { "type": "string", "description": "用户名" },
+              "pin_yin": { "type": "string", "description": "用户名拼音" },
+              "nickname": { "type": "string", "description": "昵称" },
+              "age": { "type": "number", "description": "年龄" },
+              "gender": { "type": "string", "description": "女,男,保密" },
+              "avatar": { "type": "string", "description": "头像" }
+            },
+            "description": "对方的用户信息",
+            "required": ["id", "username", "pin_yin"]
+          }
+        }
+      },
+      "description": "消息列表"
+    }
+  },
+  "required": ["data"]
+}
