@@ -38,6 +38,14 @@
           },
           "description": "好友信息",
           "required": ["id", "username", "pin_yin"]
+        },
+        "link": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "number", "description": "列表id" }
+          },
+          "description": "聊天列表id",
+          "required": []
         }
       },
       "required": ["friend", "user"],
