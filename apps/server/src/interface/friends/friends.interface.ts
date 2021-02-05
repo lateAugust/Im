@@ -1,3 +1,5 @@
+// 注意看Raw和Body的分界线
+
 // Raw
 interface UsersBaseRaw {
   user_id: number;
@@ -21,6 +23,17 @@ interface FriendsRaw {
   friend_create_at: string;
 }
 
+interface LinksBaseRaw {
+  lin_id: number;
+}
+
+interface FriendsDetailUsersRaw extends UsersBaseBody {
+  user_mobile: string | null;
+  user_email: string | null;
+  user_address: string | null;
+  user_create_at: string;
+}
+
 interface ProposerBaseRaw {
   proposer_id: number | null;
   proposer_message: string | null;
@@ -38,6 +51,8 @@ export interface FriendsListDetailRawInterface extends UsersBaseRaw, FriendsBase
   create_at: string | null;
 }
 
+export interface FriendsListDetailRawInterFace extends FriendsDetailUsersRaw, FriendsRaw, LinksBaseRaw {}
+
 // body
 
 interface UsersBaseBody {
@@ -52,6 +67,10 @@ interface UsersBaseBody {
 
 interface FriendsBaseBody<T> {
   id: T;
+}
+
+interface LinksBaseBody {
+  id: number;
 }
 
 interface FriendsBody extends FriendsBaseBody<number> {
@@ -89,6 +108,7 @@ interface FriendsDetailUsers extends UsersBaseBody {
 export interface FriendsListDetailInterFace {
   friend: FriendsBody;
   user: FriendsDetailUsers;
+  link: LinksBaseBody;
 }
 export interface FriendsApplyCountInterface {
   count: number;

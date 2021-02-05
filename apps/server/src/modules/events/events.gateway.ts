@@ -4,7 +4,7 @@ import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Repository } from 'typeorm';
 import WebSocket, { Server } from 'ws';
-import { EventsMessageDto } from '../../dto/events/events.dto';
+import { MessageDto } from '../../dto/events/events.dto';
 import { Links } from '../../emtites/events/links.emtity';
 import { Messages } from '../../emtites/events/messages.emtity';
 
@@ -31,14 +31,14 @@ export class EventsGateway {
 
   @SubscribeMessage('message')
   // 收到消息
-  async onEvent(client: WebSocket, data: EventsMessageDto): Promise<void> {
+  async onEvent(client: WebSocket, data: MessageDto): Promise<void> {
     // 保存消息到messages,links 再保存完成后发给客户端
     this.saveMessage(data);
   }
   // 已读处理
   @SubscribeMessage('readed')
-  async readed(client: WebSocket, data: { links_id: number }) {
-    let result = await this.linksRepository.findOne({ id: data.links_id });
+  async readed(client: WebSocket, data: { link_id: number }) {
+    let result = await this.linksRepository.findOne({ id: data.link_id });
     result.unread_count = 0;
     await this.linksRepository.save(result);
   }
@@ -69,23 +69,28 @@ export class EventsGateway {
     Reflect.deleteProperty(this.usersOnline, userId);
   }
 
-  send(receiveId: number, data: EventsMessageDto) {
+  send(receiveId: number, data: MessageDto) {
     // 给某人发送消息
     let client = this.usersOnline[receiveId];
     if (client) client.send(transferToString(data));
   }
 
-  async saveMessage(data: EventsMessageDto) {
-    let { send_id, receive_id, message, links_id } = data;
+  async saveMessage(data: MessageDto) {
+    let { send_id, receive_id, message, send_user, receive_user } = data;
+    let link_id: number;
     let linksResult: Links;
     let messagesResult: Messages;
     let linksData = { message, send_id, receive_id, unread_count: 1 };
 
     let messagesData = { message, receive_id, send_id };
 
-    // 这里往下 还有links_id 和message_id需要修改下, 等后面测试的时候看下保存/修改的返回值, 修改下id
-    if (links_id) {
-      linksResult = await this.linksRepository.findOne({ id: links_id });
+    // 这里往下 还有liks_id 和message_id需要修改下, 等后面测试的时候看下保存/修改的返回值, 修改下id
+
+    linksResult = await this.linksRepository
+      .createQueryBuilder()
+      .where(`send_id = ${send_id} AND receive_id = ${receive_id}`)
+      .getOne();
+    if (linksResult) {
       linksData.unread_count = linksResult.unread_count + 1;
     }
 
@@ -98,16 +103,21 @@ export class EventsGateway {
       create_at: messagesResult.create_at
     };
     this.send(receive_id, {
+      type: 'message',
       message,
-      send_id: receive_id,
-      receive_id: send_id,
-      links_id: linksResult.id,
+      send_id,
+      receive_id,
+      link_id: linksResult.id,
+      receive_user,
+      send_user,
       ...subObject
     });
     this.send(send_id, {
+      type: 'message',
       ...data,
       ...subObject,
-      id: messagesResult.id
+      id: messagesResult.id,
+      link_id: linksResult.id
     });
   }
 }

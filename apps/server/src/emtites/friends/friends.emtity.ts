@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
+import { Links } from '../events/links.emtity';
 import { Users } from '../users/users.entity';
 
 @Entity()
@@ -32,6 +33,12 @@ export class Friends {
     user => user.friend
   )
   user: Users;
+
+  @OneToMany(
+    type => Links,
+    link => link.friend
+  )
+  link: Links;
 
   @Column({
     type: 'timestamp',

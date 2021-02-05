@@ -25,7 +25,7 @@ class User {
   age?: number;
 }
 
-export class EventsMessageDto {
+export class EventsMessageBaseDto {
   @IsString({ message: 'message字段必须是字符串' })
   @IsNotEmpty({ message: '消息内容是必须的' })
   message: string;
@@ -39,14 +39,22 @@ export class EventsMessageDto {
   receive_id: number;
 
   @IsInt({ message: 'links_id字段类型错误, 必须是数字类型' })
-  links_id?: number;
+  link_id?: number;
 
   @IsInt({ message: 'message_id字段类型错误, 必须是数字类型' })
   message_id?: number;
 
-  id?: number;
+  type: string; //消息类型
+
+  id?: number; // message_id
 
   update_at?: Timestamp;
 
   create_at?: Timestamp;
+}
+
+export class MessageDto extends EventsMessageBaseDto {
+  send_user: User; // 发送人user信息
+
+  receive_user: User; // 接收人user信息
 }

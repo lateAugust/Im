@@ -8,6 +8,9 @@ export class Messages {
   @Column({ comment: '消息内容' })
   message: string;
 
+  @Column('enum', { enum: ['notification', 'message'], comment: '消息类型', default: 'message' })
+  type: string;
+
   @Column({ comment: '发送方id' })
   send_id: number;
 

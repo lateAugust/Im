@@ -1,4 +1,4 @@
-import { Injectable, Query } from '@nestjs/common';
+import { HttpException, Injectable, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createQueryBuilder, Repository, QueryFailedError } from 'typeorm';
 import { PagesDto } from '../../dto/common/pages.dto';
@@ -21,8 +21,12 @@ import {
   FriendsSearchingBodyInterface,
   FriendsListInterface,
   FriendsListBodyInterface,
-  FriendsListDetailInterFace
+  FriendsListDetailInterFace,
+  FriendsListDetailRawInterFace
 } from '../../interface/friends/friends.interface';
+import { EventsGateway } from '../events/events.gateway';
+import { Links } from '../../emtites/events/links.emtity';
+import { Messages } from '../../emtites/events/messages.emtity';
 
 const env = process.env;
 let { PAGE, PAGE_SIZE } = env;
@@ -34,7 +38,10 @@ export class FriendsService {
   constructor(
     @InjectRepository(Proposers) private readonly proposersRepository: Repository<Proposers>,
     @InjectRepository(Users) private readonly usersRepository: Repository<Users>,
-    @InjectRepository(Friends) private readonly friendsRepository: Repository<Friends>
+    @InjectRepository(Friends) private readonly friendsRepository: Repository<Friends>,
+    @InjectRepository(Links) private readonly linksRepository: Repository<Links>,
+    @InjectRepository(Messages) private readonly messagesRepository: Repository<Messages>,
+    private readonly eventsGetway: EventsGateway
   ) {}
 
   /**
@@ -229,11 +236,13 @@ export class FriendsService {
    */
   async auditApply(query: FriendsAuditDto, id: number, user_id: number): Promise<ReturnBody<Proposers | Friends | {}>> {
     let message = '';
+    let notificationContent = query.contact_user.nickname || query.contact_user.username;
     let result: Friends | Proposers;
     try {
       switch (query.apply_status) {
         case 'agreement':
           message = '添加成功';
+          notificationContent += '同意了您的好友请求';
           // ids[0] = relation_id, ids[1] = contact_id
           // relation_id = relation_user.id, contact_id = contact_user.id
           let relation_id: number = 0;
@@ -270,6 +279,7 @@ export class FriendsService {
           break;
         case 'reject':
           message = '已拒绝';
+          notificationContent += '拒绝了您的好友请求';
           let data = await this.proposersRepository.findOne({ id });
           data.apply_status = 'reject';
           result = await this.proposersRepository.save(data);
@@ -278,8 +288,56 @@ export class FriendsService {
           new Error('添加失败');
           break;
       }
+      // 下面是存到links和message表中, save执行成功后通知到申请方
+      let send_id = query.contact_id;
+      let receive_id = query.relation_id;
+      let link_id: number;
+      this.linksRepository
+        .createQueryBuilder()
+        .where(
+          `(send_id = ${send_id} AND receive_id = ${receive_id}) OR (send_id=${receive_id} AND receive_id=${send_id})`
+        )
+        .getOne()
+        .then(res => {
+          if (res) {
+            res.message = notificationContent;
+            res.unread_count++;
+            return this.linksRepository.save(res);
+          } else {
+            return this.linksRepository.save({
+              send_id,
+              receive_id,
+              message: notificationContent,
+              unread_count: 1,
+              title: '好友验证'
+            });
+          }
+        })
+        .then(res => {
+          link_id = res.id;
+          return this.messagesRepository.save({
+            send_id,
+            receive_id,
+            message: notificationContent,
+            type: 'notification'
+          });
+        })
+        .then(res => {
+          // 这里应该还要加同意的好友
+          // console.log(query.relation_id);
+          this.eventsGetway.send(query.relation_id, {
+            type: 'notification',
+            send_id,
+            receive_id,
+            message: notificationContent,
+            receive_user: query.relation_user,
+            send_user: query.contact_user,
+            link_id
+          });
+        })
+        .catch(err => {});
     } catch (err) {
-      return { status: false, statusCode: 500, data: err, message: '添加失败, 请重试' };
+      throw new HttpException({ status: false, statusCode: 500, data: err, message: '添加失败, 请重试' }, 500);
     }
     return { statusCode: 200, message, status: true, data: result };
   }
@@ -337,6 +395,11 @@ export class FriendsService {
       let result = await this.friendsRepository
         .createQueryBuilder('friend')
         .leftJoin('users', 'user', `user.id = ${query.user_id}`)
+        .leftJoin(
+          'links',
+          'link',
+          `(friend.contact_id = link.send_id AND friend.relation_id = link.receive_id) OR (friend.relation_id = link.send_id AND friend.contact_id = link.receive_id) `
+        )
         .select([
           'user.id',
           'user.username',
@@ -355,12 +418,13 @@ export class FriendsService {
           'friend.agree_id',
           'friend.contact_id',
           'friend.update_at',
-          'friend.create_at'
+          'friend.create_at',
+          'link.id'
         ])
         .where(`friend.id = ${query.friend_id}`)
-        .getRawOne<FriendsListDetailInterFace>();
+        .getRawOne<FriendsListDetailRawInterFace>();
 
-      let data = processIncludeUnderlineKeyObject<FriendsListDetailInterFace, FriendsListDetailInterFace>([result]);
+      let data = processIncludeUnderlineKeyObject<FriendsListDetailRawInterFace, FriendsListDetailInterFace>([result]);
       return { status: true, statusCode: 200, message: '获取成功', data: data[0] };
     } catch (err) {
       return { status: false, statusCode: 500, message: '获取失败', data: err };
