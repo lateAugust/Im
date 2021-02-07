@@ -15,6 +15,7 @@
     "start-server:dev": "nest start --watch server",
     "start-server": "nest start server",
     "start-server:build": "nest build server",
+    "start-server:prod": "node dist/apps/server/main",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
