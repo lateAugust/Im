@@ -47,7 +47,7 @@ websocket.onopen = function() {
           message: '111', // 消息内容
       },
     }))
-    // 消息已读, 也就是减去消息列表上的unread_count
+    // 消息已读, 也就是减去消息列表上的unread_count 注意是receive_id为自己方和已连接websocket才发送
     websocket.send(JSON.stringify({event: 'readed', data: {
         link_id: 1// 消息列表id
     }})
