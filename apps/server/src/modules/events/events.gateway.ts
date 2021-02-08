@@ -16,7 +16,7 @@ import { UsersOnline } from '../../interface/events/events.interface';
 // 就先这样, 可以开始去写前端了
 
 // 20210128 23:53 完成以上问题
-@WebSocketGateway(8080)
+@WebSocketGateway()
 export class EventsGateway {
   @WebSocketServer()
   server: Server;
@@ -88,13 +88,16 @@ export class EventsGateway {
 
     linksResult = await this.linksRepository
       .createQueryBuilder()
-      .where(`send_id = ${send_id} AND receive_id = ${receive_id}`)
+      .where(
+        `(send_id = ${send_id} AND receive_id = ${receive_id}) OR (send_id = ${receive_id} AND receive_id = ${send_id})`
+      )
       .getOne();
     if (linksResult) {
       linksData.unread_count = linksResult.unread_count + 1;
+      await this.linksRepository.update(linksResult.id, linksData);
+    } else {
+      linksResult = await this.linksRepository.save(linksData);
     }
-
-    linksResult = await this.linksRepository.save(linksData);
 
     messagesResult = await this.messafessRepository.save(messagesData);
     let subObject = {
