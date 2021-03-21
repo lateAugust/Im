@@ -48,7 +48,7 @@ export function processUnderlineKey(key: string) {
   return key.split('_');
 }
 
-export function processIncludeUnderlineKeyObject<T, C>(array: T[]): C[] {
+export function formatRawData<T, C>(array: T[]): C[] {
   let list = [];
   for (let item of array) {
     let obj = {};
@@ -71,4 +71,12 @@ export function transferToString(data: any): string {
 
 export function transferToObject<T>(data: string): T {
   return JSON.parse(data);
+}
+
+export function leftJoinOn(repository: string, field: string, id: number): string {
+  return `${repository}.public_id = CONCAT(${field} , ',' , ${id}) OR ${repository}.public_id = CONCAT(${id}, ',' , ${field})`;
+}
+
+export function wherePublicId(fields: [string, string], id: number): string {
+  return `IF(${fields[0]} > ${fields[1]}, CONCAT(${fields[0]}, ',', ${fields[1]}), CONCAT(${fields[1]}, ',', ${fields[0]})) = public_id`;
 }

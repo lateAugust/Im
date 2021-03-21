@@ -10,13 +10,14 @@ import {
 } from '../../dto/friends/friends.dto';
 import { PagesDto } from '../../dto/common/pages.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ReturnBody } from '../../utils/return-body';
+import { ReturnBody } from '../../utils/returnBody';
 import {
   FriendsSearchingBodyInterface,
   FriendsApplyCountInterface,
   FriendsListBodyInterface,
-  FriendsListDetailInterFace
-} from '../../interface/friends/friends.interface';
+  FriendsListDetailInterFace,
+  ProposerApplyListInterface
+} from '../../common/interface/friends/friends.interface';
 
 import { Users } from '../../emtites/users/users.entity';
 import { Proposers } from '../../emtites/friends/proposers.emtity';
@@ -46,7 +47,7 @@ export class FriendsController {
   async searching(
     @Query() query: FriendsSearchingDto,
     @Request() req: RequestWidth
-  ): Promise<ReturnBody<FriendsSearchingBodyInterface[] | []>> {
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface[]>> {
     return this.friendsService.searching(query, req.user.sub);
   }
 
@@ -58,10 +59,9 @@ export class FriendsController {
   @Get('/searching/:id')
   async searchingDetail(
     @Param() param: { id: number },
-    @Query() query: { proposer_id: number },
-    @Request() req: RequestWidth
-  ): Promise<ReturnBody<FriendsSearchingBodyInterface | {}>> {
-    return this.friendsService.searchingDetail(param.id, query.proposer_id, req.user.sub);
+    @Query() query: { proposer_id: number }
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface>> {
+    return this.friendsService.searchingDetail(param.id, query.proposer_id);
   }
 
   /**
@@ -70,7 +70,7 @@ export class FriendsController {
   @Post('/apply')
   @ApiOperation({ summary: '发送好友申请' })
   @HttpCode(200)
-  createApply(@Body() apply: ApplyDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers | {}>> {
+  createApply(@Body() apply: ApplyDto, @Request() req: RequestWidth): Promise<ReturnBody<Proposers>> {
     return this.friendsService.createApply(apply, req.user.sub);
   }
 
@@ -94,7 +94,7 @@ export class FriendsController {
   async applyList(
     @Query() query: FriendsApplyListDto,
     @Request() req: RequestWidth
-  ): Promise<ReturnBody<Proposers[] | []>> {
+  ): Promise<ReturnBody<ProposerApplyListInterface[]>> {
     return this.friendsService.applyList(query, req.user.sub);
   }
 
@@ -103,7 +103,7 @@ export class FriendsController {
    * @param param
    */
   @Get('/apply/list/:id')
-  async applyDetail(@Param() param: { id: number }): Promise<ReturnBody<Proposers | {}>> {
+  async applyDetail(@Param() param: { id: number }): Promise<ReturnBody<ProposerApplyListInterface>> {
     return this.friendsService.applyDetail(param.id);
   }
 
@@ -119,7 +119,7 @@ export class FriendsController {
     @Body() query: FriendsAuditDto,
     @Param() param: { id: number },
     @Request() req: RequestWidth
-  ): Promise<ReturnBody<Proposers | Friends | {}>> {
+  ): Promise<ReturnBody<Proposers | Friends>> {
     return this.friendsService.auditApply(query, param.id, req.user.sub);
   }
 

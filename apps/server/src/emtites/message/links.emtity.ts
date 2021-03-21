@@ -1,11 +1,16 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 import { Friends } from '../friends/friends.emtity';
 import { Users } from '../users/users.entity';
+import { PublicId } from '../common/index';
+import { messageTypeEnum } from '../../common/enum/messages';
 
 @Entity()
-export class Links {
+export class Links extends PublicId {
   @PrimaryGeneratedColumn({ comment: '主键id' })
   id: number;
+
+  @Column({ type: 'int', comment: '存储通知类型的消息, 属于某个人的', default: null })
+  belong_id: number;
 
   @Column({ type: 'int', comment: '发送方id' })
   send_id: number;
@@ -13,7 +18,11 @@ export class Links {
   @Column({ type: 'int', comment: '接收方id' })
   receive_id: number;
 
-  @Column('enum', { enum: ['message', 'notification'], comment: '消息类型' })
+  @Column('enum', {
+    enum: messageTypeEnum,
+    comment: '消息类型',
+    default: messageTypeEnum[0]
+  })
   type: string;
 
   @Column({ comment: '消息类型对应的标题', default: null })

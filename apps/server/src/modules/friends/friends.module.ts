@@ -7,8 +7,8 @@ import { AuthModule } from 'libs/auth';
 import { Users } from '../../emtites/users/users.entity';
 import { Friends } from '../../emtites/friends/friends.emtity';
 import { EventsModule } from '../events/events.module';
-import { Links } from '../../emtites/events/links.emtity';
-import { Messages } from '../../emtites/events/messages.emtity';
+import { Links } from '../../emtites/message/links.emtity';
+import { Messages } from '../../emtites/message/messages.emtity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Proposers, Users, Friends, Links, Messages]), AuthModule, EventsModule],

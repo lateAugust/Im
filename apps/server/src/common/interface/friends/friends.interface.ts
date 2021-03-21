@@ -44,6 +44,8 @@ export interface FriendsSearchingInterface extends UsersBaseRaw, FriendsBaseRaw,
 
 export interface FriendsListInterface extends UsersBaseRaw, FriendsBaseRaw, FriendsRaw {}
 
+export interface ProposerApplyListRawInterface extends UsersBaseRaw, ProposerBaseRaw {}
+
 export interface FriendsListDetailRawInterface extends UsersBaseRaw, FriendsBaseRaw, FriendsRaw {
   mobile: string | null;
   address: string | null;
@@ -113,3 +115,5 @@ export interface FriendsListDetailInterFace {
 export interface FriendsApplyCountInterface {
   count: number;
 }
+
+export interface ProposerApplyListInterface extends UsersBaseBody, ProposerBaseBody {}

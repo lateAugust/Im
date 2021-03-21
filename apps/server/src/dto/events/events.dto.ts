@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsObject, IsInt, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Timestamp } from 'typeorm';
+import { Column, Timestamp } from 'typeorm';
 
 class User {
   @IsInt({ message: 'id字段类型错误, 必须是个数字' })
@@ -44,6 +44,9 @@ export class EventsMessageBaseDto {
   @IsInt({ message: 'message_id字段类型错误, 必须是数字类型' })
   message_id?: number;
 
+  @IsEnum(['RejectendNotification', 'NewFriendNotification', 'message', 'NewApplyNotification'], {
+    message: '消息类型设置错误'
+  })
   type: string; //消息类型
 
   id?: number; // message_id
@@ -57,4 +60,6 @@ export class MessageDto extends EventsMessageBaseDto {
   send_user: User; // 发送人user信息
 
   receive_user: User; // 接收人user信息
+
+  proposers_id?: number; // 拒绝后查看详情
 }

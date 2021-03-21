@@ -19,7 +19,7 @@ import {
   GetUserInfoIdDto,
   SetUserInfoDto
 } from '../../dto/users/users.dto';
-import { ReturnBody } from '../../utils/return-body';
+import { ReturnBody } from '../../utils/returnBody';
 import { UsersService } from './users.service';
 import { Users } from '../../emtites/users/users.entity';
 import { AuthGuard } from '@nestjs/passport';

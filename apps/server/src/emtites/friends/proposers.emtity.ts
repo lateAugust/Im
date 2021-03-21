@@ -1,8 +1,9 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
 import { Users } from '../users/users.entity';
+import { PublicId } from '../common/index';
 
 @Entity()
-export class Proposers {
+export class Proposers extends PublicId {
   @PrimaryGeneratedColumn({ comment: '主键id' })
   id: number;
 
@@ -18,11 +19,14 @@ export class Proposers {
   @Column({ length: 255, default: null, comment: '附加消息' })
   message: string;
 
-  @Column({ type: 'json', nullable: false, comment: '要申请添加的用户信息' })
+  @Column({ length: 255, default: null, comment: '拒绝的附加消息' })
+  reject_message: string;
+
+  /* @Column({ type: 'json', nullable: false, comment: '要申请添加的用户信息' })
   target_user: object;
 
   @Column({ type: 'json', nullable: false, comment: '申请方的用户信息' })
-  apply_user: object;
+  apply_user: object; */
 
   @Column('enum', {
     enum: ['underReview', 'reject', 'agreement'],

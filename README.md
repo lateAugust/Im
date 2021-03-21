@@ -30,10 +30,21 @@ nest build server
 
 ### server
 
-- [接口文档](https://api.wxiain.com/), 注册后联系我 QQ: 30078832263(请注明来意,欢迎提出问题,大家一起学习进步)
+- [接口文档](https://doc.wxiain.com/), 注册后联系我 QQ: 30078832263(请注明来意,欢迎提出问题,大家一起学习进步)
 - 由于 yapi 文档不支持 websocket 接口, 所以我在下面补齐
 
 ```javascript
+
+ /**
+   * type 消息类型
+   * - NewApplyNotification 新发送添加好友申请的通知
+   * - message 新消息
+   * - NewFriendNotification 申请同意添加好友通知
+   * - RejectendNotification 拒绝添加好友通知
+   *
+   * - RejectConnect websocket拒绝连接, 可能是token过期或者protocol未携带token
+   */
+
 let websocket = new Websocket('ws://localhost:8080', [token]);
 // 1.这里token过期或者没带, 会被服务端主动关闭该次连接
 // 2. 由于websocket上没有心跳连接, 所以在连接服务失败时, 可能需要重连

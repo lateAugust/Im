@@ -120,23 +120,23 @@ export class FriendsSearchingDto extends PagesDto {
 export class FriendsAuditDto {
   @ApiProperty({ required: true })
   @IsInt({ message: 'relation_id字段类型错误, 只能是数字' })
-  @IsNotEmpty({ message: '申请方用户relation_id不能为空' })
-  relation_id: number;
+  @IsNotEmpty({ message: '申请方用户apply_id不能为空' })
+  apply_id: number;
+
+  /*  @ApiProperty({ required: false, type: User })
+  @IsObject()
+  @Type(() => User)
+  contact_user: User; */
 
   @ApiProperty({ required: false, type: User })
   @IsObject()
   @Type(() => User)
-  contact_user: User;
+  apply_user: User;
 
-  @ApiProperty({ required: false, type: User })
-  @IsObject()
-  @Type(() => User)
-  relation_user: User;
-
-  @ApiProperty({ required: true })
+  /* @ApiProperty({ required: true })
   @IsInt({ message: 'contact_id字段类型错误, 只能是数字' })
-  @IsNotEmpty({ message: '当前登录用户contact_id不能为空' })
-  contact_id: number;
+  @IsNotEmpty({ message: '当前登录用户target_id不能为空' })
+  target_id: number; */
 
   @ApiProperty({ required: false })
   @IsInt({ message: '当前列表id必须是数字类型' })

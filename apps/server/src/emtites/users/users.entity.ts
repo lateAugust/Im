@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
-import { Links } from '../events/links.emtity';
+import { Links } from '../message/links.emtity';
 import { Friends } from '../friends/friends.emtity';
 import { Proposers } from '../friends/proposers.emtity';
 

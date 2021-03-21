@@ -1,15 +1,15 @@
 import { Controller, Get, Query, UseGuards, UsePipes, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MessageListDto } from '../../dto/message/message.dto';
-import { Messages } from '../../emtites/events/messages.emtity';
+import { Messages } from '../../emtites/message/messages.emtity';
 import { MessageService } from './message.service';
-import { LinksList } from '../../interface/message/message.interface';
+import { LinksList } from '../../common/interface/message/message.interface';
 
-import { ReturnBody } from '../../utils/return-body';
+import { ReturnBody } from '../../utils/returnBody';
 import { AuthGuard } from '@nestjs/passport';
 import { ValidatePipe } from './message.validate.pipe';
 import { PagesDto } from '../../dto/common/pages.dto';
-import { Links } from '../../emtites/events/links.emtity';
+import { Links } from '../../emtites/message/links.emtity';
 import { RequestWidth } from 'types/express.extends';
 
 @ApiTags('message')

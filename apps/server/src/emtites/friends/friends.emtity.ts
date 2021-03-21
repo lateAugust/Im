@@ -1,32 +1,24 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp } from 'typeorm';
-import { Links } from '../events/links.emtity';
+import { Links } from '../message/links.emtity';
 import { Users } from '../users/users.entity';
+import { PublicId } from '../common/index';
 
 @Entity()
-export class Friends {
+export class Friends extends PublicId {
   @PrimaryGeneratedColumn({ comment: '主键id' })
   id: number;
-
-  @Column({ comment: '申请人和创建人的id 降序 逗号隔开' })
-  ids: string;
-
-  @Column({ type: 'int', comment: '双方id, 降序 id(0)' })
-  relation_id: number;
-
-  @Column({ type: 'int', comment: '双方id, 降序 id(1)' })
-  contact_id: number;
-
+  
   @Column({ type: 'int', comment: '申请用户id' })
   apply_id: number;
 
   @Column({ type: 'int', comment: '创建人用户id(谁同意的)' })
   agree_id: number;
 
-  @Column({ type: 'json', nullable: false, comment: '用户1基本信息' })
+  /* @Column({ type: 'json', nullable: false, comment: '用户1基本信息' })
   relation_user: object;
 
   @Column({ type: 'json', nullable: false, comment: '用户2基本信息' })
-  contact_user: object;
+  contact_user: object; */
 
   @OneToMany(
     type => Users,

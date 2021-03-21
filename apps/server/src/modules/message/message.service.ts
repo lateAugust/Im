@@ -3,11 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PagesDto } from '../../dto/common/pages.dto';
 import { MessageListDto } from '../../dto/message/message.dto';
-import { Links } from '../../emtites/events/links.emtity';
-import { Messages } from '../../emtites/events/messages.emtity';
-import { LinksListRaw, LinksList } from '../../interface/message/message.interface';
-import { ReturnBody } from '../../utils/return-body';
-import { processIncludeUnderlineKeyObject } from '../../utils/utils';
+import { Links } from '../../emtites/message/links.emtity';
+import { Messages } from '../../emtites/message/messages.emtity';
+import { LinksListRaw, LinksList } from '../../common/interface/message/message.interface';
+import { ReturnBody } from '../../utils/returnBody';
+import { formatRawData, leftJoinOn, sortReturnString, wherePublicId } from '../../utils/utils';
+import { userBase } from '../../common/select/user';
+import { linkBase, linkDetail, linkOther } from '../../common/select/messages/link';
+import { link } from 'fs';
 
 const env = process.env;
 let { PAGE, PAGE_SIZE } = env;
@@ -30,28 +33,25 @@ export class MessageService {
     page = Number(page) || defaultPage;
     page_size = Number(page_size) || defaultPageSize;
     message_id = Number(message_id) || 0;
-    type = type || 'message';
+    type = type || 'Message';
     try {
-      let startSql = message_id ? 'AND id < ' + message_id : '';
-      let notificationSql = type === 'notification' ? `type = '${type}' AND receive_id = ${user_id}` : '';
-      let messageSql = `type = 'message' AND ((send_id = ${send_id} AND receive_id= ${receive_id}) OR (receive_id=${send_id} AND send_id = ${receive_id})) ${startSql}`;
+      let sql: string;
+      switch (type) {
+        case 'Message':
+          sql = `'${sortReturnString(receive_id, send_id)}' = public_id`;
+          break;
+        case 'NewFriendNotification':
+          sql = `belong_id = ${user_id}`;
+          break;
+      }
       let result = await this.messageRepository
         .createQueryBuilder()
-        .where(notificationSql || messageSql)
+        .where(`type = '${type}' AND ${sql}`)
         // .skip(Math.max(0, page - 1) * page_size)
         .take(page_size)
         .orderBy('update_at', 'DESC')
-        .getMany();
-      // .getManyAndCount();
-      return {
-        page,
-        page_size,
-        data: result,
-        // total: result[1],
-        statusCode: 200,
-        status: true,
-        message: '获取成功'
-      };
+        .getManyAndCount();
+      return { page, page_size, data: result[0], total: result[1], statusCode: 200, status: true, message: '获取成功' };
     } catch (err) {
       throw new HttpException({ data: err, statusCode: 500, status: false, message: '获取失败' }, 500);
     }
@@ -62,33 +62,9 @@ export class MessageService {
     try {
       let builder = await this.linksRepository
         .createQueryBuilder('link')
-        .leftJoinAndSelect(
-          'users',
-          'user',
-          `(user.id = link.send_id OR user.id = link.receive_id) AND user.id <> ${user_id}`
-        )
-        .distinct(true)
-        .select([
-          'link.id',
-          'link.send_id',
-          'link.receive_id',
-          'link.unread_count',
-          'link.title',
-          'link.type',
-          'link.update_at',
-          'link.create_at',
-          'link.message',
-          'user.id',
-          'user.username',
-          'user.avatar',
-          'user.nickname',
-          'user.age',
-          'user.gender',
-          'user.pin_yin'
-        ])
-        .where(
-          `IF(link.type = 'notification',link.receive_id = ${user_id},link.send_id = ${user_id} OR link.receive_id = ${user_id})`
-        )
+        .leftJoin('users', 'user', 'TRUE')
+        .select([...linkBase, ...linkDetail, ...linkOther, ...userBase])
+        .where(`IF(link.belong_id IS NULL, ${leftJoinOn('link', 'user.id', user_id)}, user.id = ${user_id})`)
         .limit(page_size)
         .offset(Math.max(0, page - 1) * page_size)
         .orderBy('link.update_at', 'DESC');
@@ -98,7 +74,7 @@ export class MessageService {
       return {
         page,
         page_size,
-        data: processIncludeUnderlineKeyObject<LinksListRaw, LinksList>(result),
+        data: formatRawData<LinksListRaw, LinksList>(result),
         total,
         statusCode: 200,
         status: true,

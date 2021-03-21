@@ -1,20 +1,9 @@
+// modules
 import { HttpException, Injectable, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createQueryBuilder, Repository, QueryFailedError } from 'typeorm';
-import { PagesDto } from '../../dto/common/pages.dto';
-import {
-  ApplyDto,
-  FriendsApplyListDto,
-  FriendsAuditDto,
-  FriendsDetailDeto,
-  FriendsSearchingDto
-} from '../../dto/friends/friends.dto';
-import { Friends } from '../../emtites/friends/friends.emtity';
-import { Proposers } from '../../emtites/friends/proposers.emtity';
-import { Users } from '../../emtites/users/users.entity';
-import { ReturnBody } from '../../utils/return-body';
-import { pagination, processIncludeUnderlineKeyObject, sortReturnString } from '../../utils/utils';
 
+// interface
 import {
   FriendsSearchingInterface,
   FriendsApplyCountInterface,
@@ -22,11 +11,39 @@ import {
   FriendsListInterface,
   FriendsListBodyInterface,
   FriendsListDetailInterFace,
-  FriendsListDetailRawInterFace
-} from '../../interface/friends/friends.interface';
+  FriendsListDetailRawInterFace,
+  ProposerApplyListRawInterface,
+  ProposerApplyListInterface
+} from '../../common/interface/friends/friends.interface';
+
+// getway
 import { EventsGateway } from '../events/events.gateway';
-import { Links } from '../../emtites/events/links.emtity';
-import { Messages } from '../../emtites/events/messages.emtity';
+
+// dto
+import {
+  ApplyDto,
+  FriendsApplyListDto,
+  FriendsAuditDto,
+  FriendsDetailDeto,
+  FriendsSearchingDto
+} from '../../dto/friends/friends.dto';
+
+// emtity
+import { Friends } from '../../emtites/friends/friends.emtity';
+import { Proposers } from '../../emtites/friends/proposers.emtity';
+import { Users } from '../../emtites/users/users.entity';
+import { Links } from '../../emtites/message/links.emtity';
+import { Messages } from '../../emtites/message/messages.emtity';
+
+// utils
+import { ReturnBody } from '../../utils/returnBody';
+import { pagination, formatRawData, sortReturnString, leftJoinOn } from '../../utils/utils';
+
+// select
+import { userBase, userOther } from '../../common/select/user';
+import { friendBase, friendDetail } from '../../common/select/friend';
+import { proposerBase } from '../../common/select/proposer';
+import { linkBase } from '../../common/select/messages/link';
 
 const env = process.env;
 let { PAGE, PAGE_SIZE } = env;
@@ -52,53 +69,32 @@ export class FriendsService {
   async searching(
     { page, page_size, keywords }: FriendsSearchingDto,
     id: number
-  ): Promise<ReturnBody<FriendsSearchingBodyInterface[] | []>> {
+  ): Promise<ReturnBody<FriendsSearchingBodyInterface[]>> {
     page = page || defaultPage;
     page_size = page_size || defaultPageSize;
     try {
-      // 查询的逻辑, 先去检索users表, 然后用users.id和当前登录的用户id降序排序拼接成ids
-      // 再是users.id和proposer.target_id比较; 如果等于, 那么说明是申请用户在继续查询; 不等于说明是被申请方在查询;
+      // 查询的逻辑, 先去检索users表, 然后用users.id和当前登录的用户id使用mysql正则匹配
+      // 再是users.id和当前登录的用户id使用mysql正则匹配; 如果等于, 那么说明是申请用户在继续查询; 不等于说明是被申请方在查询;
       // 那么对应的按钮逻辑就是:
       //     申请方: 未添加过是添加; 添加了但是还没通过是申请中, 此时可以修改message 同意了是发消息;
       //     被申请方: 自己还未同意是待验证, 进到同意页面; 同意了是发消息; 如果拒绝了就是已拒绝
       const builder = await this.usersRepository
         .createQueryBuilder('user')
-        .leftJoinAndSelect(
-          'friends',
-          'friend',
-          `IF( ${id} > user.id, CONCAT( user.id, ',', ${id} ), CONCAT( ${id}, ',', user.id )) = friend.ids`
-        )
-        .leftJoinAndSelect(
-          'proposers',
-          'proposer',
-          `IF(user.id = proposer.target_id,user.id = proposer.target_id AND proposer.apply_id = ${id},user.id=proposer.apply_id AND proposer.target_id = ${id})`
-        )
+        .leftJoinAndSelect('friends', 'friend', leftJoinOn('friend', 'user.id', id))
+        .leftJoinAndSelect('proposers', 'proposer', leftJoinOn('proposer', 'user.id', id))
         .distinct(true)
-        .select([
-          'user.id',
-          'user.username',
-          'user.nickname',
-          'user.avatar',
-          'user.gender',
-          'user.age',
-          'user.pin_yin',
-          'proposer.id',
-          'proposer.message',
-          'friend.id',
-          'proposer.apply_status',
-          'proposer.target_id'
-        ])
+        .select([...userBase, ...friendBase, ...proposerBase])
         .where(
           `user.id <> ${id} AND (instr(IF(user.nickname IS NULL,user.username,user.nickname), '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0)`
         )
-        .skip(Math.max(0, page - 1) * page_size)
-        .take(page_size);
+        .limit(page_size)
+        .offset(Math.max(0, page - 1) * page_size);
       let list = await builder.getRawMany<FriendsSearchingInterface>();
       let count = await builder.getCount();
-      let data = processIncludeUnderlineKeyObject<FriendsSearchingInterface, FriendsSearchingBodyInterface>(list);
+      let data = formatRawData<FriendsSearchingInterface, FriendsSearchingBodyInterface>(list);
       return { status: true, statusCode: 200, message: '获取成功', data, total: count, page, page_size };
     } catch (err) {
-      return { message: '网络错误, 请重试', status: false, statusCode: 500, data: err };
+      throw new HttpException({ data: err, statusCode: 500, status: false, message: '获取失败' }, 500);
     }
   }
 
@@ -107,51 +103,29 @@ export class FriendsService {
    * @param id proposers.contact_id
    * @param proposer_id proposers.id
    */
-  async searchingDetail(
-    id: number,
-    proposer_id: number,
-    user_id: number
-  ): Promise<ReturnBody<FriendsSearchingBodyInterface | {}>> {
+  async searchingDetail(id: number, proposer_id: number): Promise<ReturnBody<FriendsSearchingBodyInterface>> {
     try {
       let builder = await this.usersRepository
         .createQueryBuilder('user')
-        .leftJoinAndSelect(
-          'friends',
-          'friend',
-          `IF( ${user_id} > user.id, CONCAT( user.id, ',', ${user_id} ), CONCAT( ${user_id}, ',', user.id )) = friend.ids`
-        )
+        .leftJoinAndSelect('friends', 'friend', `friend.public_id REGEXP '(^user.id,${id}$|^${id},user.id$)'`)
         .leftJoin('proposers', 'proposer', `proposer.id = ${proposer_id}`)
         .distinct(true)
-        .select([
-          'user.id',
-          'user.username',
-          'user.nickname',
-          'user.age',
-          'user.gender',
-          'user.pin_yin',
-          'user.avatar',
-          'user.mobile',
-          'user.email',
-          'user.address',
-          'proposer.id',
-          'proposer.message',
-          'proposer.apply_status',
-          'proposer.target_id',
-          'friend.id'
-        ])
+        .select([...userBase, ...userOther, ...proposerBase, ...friendBase])
         .where('user.id = :id', { id });
       let user = await builder.getRawOne<FriendsSearchingInterface>();
-      let data = processIncludeUnderlineKeyObject<FriendsSearchingInterface, FriendsSearchingBodyInterface>([user])[0];
+      let data = formatRawData<FriendsSearchingInterface, FriendsSearchingBodyInterface>([user])[0];
       return { status: true, statusCode: 200, message: '获取成功', data };
     } catch (err) {
-      return { message: '获取失败', status: false, statusCode: 500, data: err };
+      throw new HttpException({ message: '获取失败', status: false, statusCode: 500, data: err }, 500);
     }
   }
 
   /**
    * 创建/修改(message)/重新申请/好友申请
+   * 第一次申请和拒绝重新申请会通知到对方, underReview修改不会通知
+   * 这里注意is_review是和apply_status保持一致的, 如果是第一次创建, 那么就为空字符串
    */
-  async createApply(params: ApplyDto, id: number): Promise<ReturnBody<Proposers | {}>> {
+  async createApply(params: ApplyDto, id: number): Promise<ReturnBody<Proposers>> {
     try {
       let message = '申请已发送';
       let result: Proposers;
@@ -161,14 +135,31 @@ export class FriendsService {
         let data = await this.proposersRepository.findOne({ id: params.proposers_id });
         let _params = { ...params };
         Reflect.deleteProperty(_params, 'proposers_id');
+        Reflect.deleteProperty(_params, 'apply_user');
+        Reflect.deleteProperty(_params, 'target_user');
         result = await this.proposersRepository.save(Object.assign({}, data, _params));
       } else {
-        result = await this.proposersRepository.save(params);
+        console.log(sortReturnString(params.target_id, params.apply_id));
+        result = await this.proposersRepository.save({
+          ...params,
+          public_id: sortReturnString(params.target_id, params.apply_id)
+        });
+      }
+      if (params.is_review !== 'underReview') {
+        // 通知到客户端
+        this.eventsGetway.send(params.target_id, {
+          type: 'NewApplyNotification',
+          send_id: id,
+          receive_id: params.target_id,
+          message: '',
+          send_user: params.apply_user,
+          receive_user: params.target_user
+        });
       }
       return { message, status: true, statusCode: 200, data: result };
-    } catch (e) {
+    } catch (err) {
       let message = params.proposers_id ? '修改失败' : '申请发送失败';
-      return { message, status: false, statusCode: 500, data: e };
+      throw new HttpException({ message, status: false, statusCode: 500, data: err }, 500);
     }
   }
 
@@ -185,7 +176,7 @@ export class FriendsService {
         .getCount();
       return { message: '获取成功', status: false, statusCode: 200, data: { count } };
     } catch (err) {
-      return { message: '获取失败', status: false, statusCode: 500, data: err };
+      throw new HttpException({ message: '获取失败', status: false, statusCode: 500, data: err }, 500);
     }
   }
 
@@ -197,24 +188,34 @@ export class FriendsService {
   async applyList(
     { page_size, page, type, keywords }: FriendsApplyListDto,
     id: number
-  ): Promise<ReturnBody<Proposers[] | []>> {
+  ): Promise<ReturnBody<ProposerApplyListInterface[]>> {
     page = page || defaultPage;
     page_size = page_size || defaultPageSize;
     type = type || 'underReview';
     try {
-      let result = await this.proposersRepository
-        .createQueryBuilder('proposer')
-        .where('target_id = :id', { id })
-        .andWhere(
-          `apply_status = \'${type}\' ` +
-            (keywords
-              ? `AND (instr(json_extract(proposer.apply_user,IF('$.nickname' IS NULL,'$.username','$.nickname')), '${keywords}') > 0 OR instr(json_extract(proposer.target_user,'$.mobile'), '${keywords}') > 0)`
-              : '')
+      let builder = await this.usersRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect(
+          'proposers',
+          'proposer',
+          `(proposer.target_id = ${id} AND proposer.apply_status = \'${type}\') `
         )
-        .getManyAndCount();
-      return { status: true, statusCode: 200, message: '获取成功', data: result[0], total: result[1], page, page_size };
+        .select([...userBase, ...proposerBase])
+        .where(
+          `user.id = proposer.apply_id ${
+            keywords
+              ? ` AND instr(IF('user.nickname' IS NULL,'user.username','user.nickname'), '${keywords}') > 0 OR instr(user.mobile, '${keywords}') > 0`
+              : ''
+          }`
+        )
+        .limit(page_size)
+        .offset(Math.max(0, page - 1) * page_size);
+      let rawList = await builder.getRawMany<ProposerApplyListRawInterface>();
+      let total = await builder.getCount();
+      let list = formatRawData<ProposerApplyListRawInterface, ProposerApplyListInterface>(rawList);
+      return { status: true, statusCode: 200, message: '获取成功', data: list, total, page, page_size };
     } catch (err) {
-      return { status: false, statusCode: 500, message: '获取失败', data: err };
+      throw new HttpException({ status: false, statusCode: 500, message: '获取失败', data: err }, 500);
     }
   }
 
@@ -222,10 +223,16 @@ export class FriendsService {
    * 获取申请列表详情
    * @param id
    */
-  async applyDetail(id: number): Promise<ReturnBody<Proposers | {}>> {
+  async applyDetail(id: number): Promise<ReturnBody<ProposerApplyListInterface>> {
     try {
-      let reulst = await this.proposersRepository.findOne({ id });
-      return { status: true, statusCode: 200, message: '获取成功', data: reulst };
+      let rawData = await this.usersRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('proposers', 'proposer', `proposer.id = ${id}`)
+        .select([...userBase, ...proposerBase])
+        .where(`user.id = proposer.apply_id`)
+        .getRawOne<ProposerApplyListRawInterface>();
+      let data = formatRawData<ProposerApplyListRawInterface, ProposerApplyListInterface>([rawData]);
+      return { status: true, statusCode: 200, message: '获取成功', data: data[0] };
     } catch (err) {
       return { status: false, statusCode: 500, message: '获取失败', data: err };
     }
@@ -234,54 +241,35 @@ export class FriendsService {
    * 处理添加好友申请
    * @param query
    */
-  async auditApply(query: FriendsAuditDto, id: number, user_id: number): Promise<ReturnBody<Proposers | Friends | {}>> {
-    let message = '';
-    let notificationContent = query.contact_user.nickname || query.contact_user.username;
+  async auditApply(query: FriendsAuditDto, id: number, user_id: number): Promise<ReturnBody<Proposers | Friends>> {
     let result: Friends | Proposers;
+    let { apply_status, apply_id, message, proposers_id, apply_user } = query;
+    let publicId = sortReturnString(apply_id, user_id);
+    let currentUser = await this.usersRepository.findOne({ id: user_id });
+    let notificationContent = currentUser.nickname || currentUser.username;
+    let operationMessage = '已同意';
+    let type: string;
     try {
-      switch (query.apply_status) {
+      switch (apply_status) {
         case 'agreement':
-          message = '添加成功';
-          notificationContent += '同意了您的好友请求';
-          // ids[0] = relation_id, ids[1] = contact_id
-          // relation_id = relation_user.id, contact_id = contact_user.id
-          let relation_id: number = 0;
-          let contact_id: number = 0;
-          let relation_user: object = {};
-          let contact_user: object = {};
-          let ids: string = '';
-          let apply_id: number = query.relation_id === user_id ? query.contact_id : query.relation_id;
-          if (query.relation_id < query.contact_id) {
-            relation_id = query.contact_id;
-            contact_id = query.relation_id;
-            ids = [contact_id, relation_id].join(',');
-            relation_user = query.contact_user;
-            contact_user = query.relation_user;
-          } else {
-            contact_id = query.relation_id;
-            relation_id = query.contact_id;
-            ids = [relation_id, contact_id].join(',');
-            contact_user = query.relation_user;
-            relation_user = query.contact_user;
-          }
+          notificationContent += '同意了您的请求';
+          type = 'NewFriendNotification';
           result = await this.friendsRepository.save({
-            ids,
-            contact_id,
-            contact_user,
-            relation_id,
-            relation_user,
+            public_id: publicId,
             agree_id: user_id,
             apply_id
           });
           await this.proposersRepository.query(
-            `UPDATE proposers SET apply_status='agreement',friend_id=${result.id} WHERE id=${id}`
+            `UPDATE proposers SET apply_status='agreement',friend_id=${result.id} WHERE id=${proposers_id}`
           );
           break;
         case 'reject':
-          message = '已拒绝';
+          type = 'RejectendNotification';
+          operationMessage = '已拒绝';
           notificationContent += '拒绝了您的好友请求';
           let data = await this.proposersRepository.findOne({ id });
           data.apply_status = 'reject';
+          data.reject_message = message;
           result = await this.proposersRepository.save(data);
           break;
         default:
@@ -289,16 +277,16 @@ export class FriendsService {
           break;
       }
       // 下面是存到links和message表中, save执行成功后通知到申请方
-      let send_id = query.contact_id;
-      let receive_id = query.relation_id;
+      // 原则上belong_id应该和receive_id相等
+      let send_id = user_id;
+      let receive_id = apply_id;
       let link_id: number;
       this.linksRepository
         .createQueryBuilder()
-        .where(
-          `(send_id = ${send_id} AND receive_id = ${receive_id}) OR (send_id=${receive_id} AND receive_id=${send_id})`
-        )
+        .where('belong_id = :id', { id: apply_id })
         .getOne()
         .then(res => {
+          // 是否已添加过, 添加过时修改, 否则新增
           if (res) {
             res.message = notificationContent;
             res.unread_count++;
@@ -307,39 +295,55 @@ export class FriendsService {
             return this.linksRepository.save({
               send_id,
               receive_id,
+              belong_id: apply_id,
               message: notificationContent,
+              type: 'NewFriendNotification',
               unread_count: 1,
               title: '好友验证'
+              // public_id: publicId
             });
           }
         })
         .then(res => {
+          // 存入新消息
           link_id = res.id;
           return this.messagesRepository.save({
             send_id,
             receive_id,
+            public_id: publicId,
             message: notificationContent,
-            type: 'notification'
+            belong_id: receive_id,
+            type: 'NewFriendNotification',
+            proposers_id: proposers_id
           });
         })
         .then(res => {
-          // 这里应该还要加同意的好友
-          // console.log(query.relation_id);
-          this.eventsGetway.send(query.relation_id, {
-            type: 'notification',
+          // 通知到客户端
+          this.eventsGetway.send(apply_id, {
+            type,
             send_id,
             receive_id,
             message: notificationContent,
-            receive_user: query.relation_user,
-            send_user: query.contact_user,
+            receive_user: apply_user,
+            proposers_id,
+            send_user: {
+              id: currentUser.id,
+              username: currentUser.username,
+              nickname: currentUser.nickname,
+              age: currentUser.age,
+              gender: currentUser.gender,
+              avatar: currentUser.avatar
+            },
             link_id
           });
         })
-        .catch(err => {});
+        .catch(err => {
+          console.log(err);
+        });
     } catch (err) {
       throw new HttpException({ status: false, statusCode: 500, data: err, message: '添加失败, 请重试' }, 500);
     }
-    return { statusCode: 200, message, status: true, data: result };
+    return { statusCode: 200, message: operationMessage, status: true, data: result };
   }
 
   /**
@@ -349,35 +353,16 @@ export class FriendsService {
    */
   async friendsList(id: number): Promise<ReturnBody<FriendsListBodyInterface[]>> {
     try {
+      // 利用关联外连接查询, 以friends表为主, users为辅, leftJoin先查询符合的user, 建立临时表
       let builder = await this.friendsRepository
         .createQueryBuilder('friend')
-        .leftJoin('users', 'user', 'friend.relation_id = user.id OR friend.contact_id = user.id')
-        .distinct(true)
-        .select([
-          'user.id',
-          'user.username',
-          'user.age',
-          'user.gender',
-          'user.avatar',
-          'user.pin_yin',
-          'user.nickname',
-          'friend.id',
-          'friend.apply_id',
-          'friend.relation_id',
-          'friend.agree_id',
-          'friend.contact_id',
-          'friend.update_at',
-          'friend.create_at'
-        ])
-        .where(
-          `(friend.relation_id = user.id AND friend.contact_id = ${id}) OR (friend.contact_id = user.id AND friend.relation_id = ${id})`
-        )
+        .leftJoin('users', 'user', leftJoinOn('friend', 'user.id', id))
+        .select([...userBase, ...friendBase, ...friendDetail])
+        .where(`user.id IS NOT NULL`)
         .orderBy(`CONVERT(user.pin_yin USING gbk)`, 'ASC');
-      // where 如果relation_id/contact_id 和当前登录用户id对得上, 说明是建立了好友关系的, 返回的就是当前用户
-      // 利用关联外连接查询, 以friends表为主, users为辅, leftJoin先查询符合的user, 建立临时表, 再到下面的where筛选一次
       let total = await builder.getCount();
       let list = await builder.getRawMany<FriendsListInterface>();
-      let data = processIncludeUnderlineKeyObject<FriendsListInterface, FriendsListBodyInterface>(list);
+      let data = formatRawData<FriendsListInterface, FriendsListBodyInterface>(list);
       return {
         status: true,
         statusCode: 200,
@@ -386,48 +371,38 @@ export class FriendsService {
         total
       };
     } catch (err) {
-      return { status: false, statusCode: 500, message: '获取失败', data: err };
+      throw new HttpException({ status: false, statusCode: 500, message: '获取失败', data: err }, 500);
     }
   }
 
+  /**
+   * 朋友详情
+   * @param query
+   * @param req
+   */
   async friendsDetail(query: FriendsDetailDeto): Promise<ReturnBody<FriendsListDetailInterFace>> {
     try {
       let result = await this.friendsRepository
         .createQueryBuilder('friend')
         .leftJoin('users', 'user', `user.id = ${query.user_id}`)
-        .leftJoin(
-          'links',
-          'link',
-          `(friend.contact_id = link.send_id AND friend.relation_id = link.receive_id) OR (friend.relation_id = link.send_id AND friend.contact_id = link.receive_id) `
-        )
+        .leftJoin('links', 'link', `friend.public_id = link.public_id`)
         .select([
-          'user.id',
-          'user.username',
-          'user.nickname',
-          'user.avatar',
-          'user.pin_yin',
-          'user.gender',
-          'user.age',
-          'user.mobile',
-          'user.address',
-          'user.email',
+          ...userBase,
+          ...userOther,
           'user.create_at',
-          'friend.id',
-          'friend.apply_id',
-          'friend.relation_id',
-          'friend.agree_id',
-          'friend.contact_id',
+          ...friendBase,
+          ...friendDetail,
           'friend.update_at',
           'friend.create_at',
-          'link.id'
+          ...linkBase
         ])
         .where(`friend.id = ${query.friend_id}`)
         .getRawOne<FriendsListDetailRawInterFace>();
 
-      let data = processIncludeUnderlineKeyObject<FriendsListDetailRawInterFace, FriendsListDetailInterFace>([result]);
+      let data = formatRawData<FriendsListDetailRawInterFace, FriendsListDetailInterFace>([result]);
       return { status: true, statusCode: 200, message: '获取成功', data: data[0] };
     } catch (err) {
-      return { status: false, statusCode: 500, message: '获取失败', data: err };
+      throw new HttpException({ status: false, statusCode: 500, message: '获取失败', data: err }, 500);
     }
   }
 }

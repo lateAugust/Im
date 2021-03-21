@@ -5,12 +5,13 @@ import { map } from 'rxjs/operators';
 import { Repository } from 'typeorm';
 import WebSocket, { Server } from 'ws';
 import { MessageDto } from '../../dto/events/events.dto';
-import { Links } from '../../emtites/events/links.emtity';
-import { Messages } from '../../emtites/events/messages.emtity';
+import { Links } from '../../emtites/message/links.emtity';
+import { Messages } from '../../emtites/message/messages.emtity';
 
 import { AuthService } from 'libs/auth';
-import { transferToString } from '../../utils/utils';
-import { UsersOnline } from '../../interface/events/events.interface';
+import { sortReturnString, transferToString, wherePublicId } from '../../utils/utils';
+import { UsersOnline } from '../../common/interface/events/events.interface';
+import { messageTypeEnum } from '../../common/enum/messages';
 
 // 遗留问题, 数据需要校验, 但是不好测试, 等后面测试时候再添加
 // 就先这样, 可以开始去写前端了
@@ -29,16 +30,17 @@ export class EventsGateway {
     private readonly authService: AuthService
   ) {}
 
-  @SubscribeMessage('message')
   // 收到消息
+  @SubscribeMessage('message')
   async onEvent(client: WebSocket, data: MessageDto): Promise<void> {
     // 保存消息到messages,links 再保存完成后发给客户端
     this.saveMessage(data);
   }
   // 已读处理
   @SubscribeMessage('readed')
-  async readed(client: WebSocket, data: { link_id: number }) {
+  async readed(client: WebSocket, data: { link_id: number }): Promise<void> {
     let result = await this.linksRepository.findOne({ id: data.link_id });
+    if (result && result.unread_count === 0) return;
     result.unread_count = 0;
     await this.linksRepository.save(result);
   }
@@ -50,6 +52,7 @@ export class EventsGateway {
       this.createConnect(verify.sub, client);
     } else {
       // 主动关闭连接
+      client.send(transferToString({ type: 'rejectConnect' }));
       client.close();
     }
     // client.close();
@@ -77,50 +80,55 @@ export class EventsGateway {
 
   async saveMessage(data: MessageDto) {
     let { send_id, receive_id, message, send_user, receive_user } = data;
-    let link_id: number;
     let linksResult: Links;
     let messagesResult: Messages;
-    let linksData = { message, send_id, receive_id, unread_count: 1 };
-
-    let messagesData = { message, receive_id, send_id };
+    let publicId = sortReturnString(receive_id, send_id);
+    let commonData = { message, send_id, receive_id, public_id: publicId, type: messageTypeEnum[0] };
+    let linksData = { ...commonData, ...{ unread_count: 1 } };
 
     // 这里往下 还有liks_id 和message_id需要修改下, 等后面测试的时候看下保存/修改的返回值, 修改下id
+    // `(send_id = ${send_id} AND receive_id = ${receive_id}) OR (send_id = ${receive_id} AND receive_id = ${send_id})`
+    try {
+      linksResult = await this.linksRepository
+        .createQueryBuilder()
+        .where(`public_id = '${publicId}'`)
+        .getOne();
+      if (linksResult) {
+        linksData.unread_count = linksResult.unread_count + 1;
+        await this.linksRepository.update(linksResult.id, linksData);
+      } else {
+        linksResult = await this.linksRepository.save(linksData);
+      }
 
-    linksResult = await this.linksRepository
-      .createQueryBuilder()
-      .where(
-        `(send_id = ${send_id} AND receive_id = ${receive_id}) OR (send_id = ${receive_id} AND receive_id = ${send_id})`
-      )
-      .getOne();
-    if (linksResult) {
-      linksData.unread_count = linksResult.unread_count + 1;
-      await this.linksRepository.update(linksResult.id, linksData);
-    } else {
-      linksResult = await this.linksRepository.save(linksData);
+      messagesResult = await this.messafessRepository.save(commonData);
+      let subObject = {
+        message_id: messagesResult.id,
+        update_at: messagesResult.update_at,
+        create_at: messagesResult.create_at
+      };
+
+      // 给对方发
+      this.send(receive_id, {
+        type: 'NewMessage',
+        message,
+        send_id,
+        receive_id,
+        link_id: linksResult.id,
+        receive_user,
+        send_user,
+        ...subObject
+      });
+
+      // 给自己发
+      this.send(send_id, {
+        type: 'NewMessage',
+        ...data,
+        ...subObject,
+        id: messagesResult.id,
+        link_id: linksResult.id
+      });
+    } catch (err) {
+      console.log(err);
     }
-
-    messagesResult = await this.messafessRepository.save(messagesData);
-    let subObject = {
-      message_id: messagesResult.id,
-      update_at: messagesResult.update_at,
-      create_at: messagesResult.create_at
-    };
-    this.send(receive_id, {
-      type: 'message',
-      message,
-      send_id,
-      receive_id,
-      link_id: linksResult.id,
-      receive_user,
-      send_user,
-      ...subObject
-    });
-    this.send(send_id, {
-      type: 'message',
-      ...data,
-      ...subObject,
-      id: messagesResult.id,
-      link_id: linksResult.id
-    });
   }
 }

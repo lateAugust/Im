@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUsersBaseDto, CreateUsersRegisterDto, SetUserInfoDto } from '../../dto/users/users.dto';
-import { ReturnBody } from '../../utils/return-body';
+import { ReturnBody } from '../../utils/returnBody';
 import { Users } from '../../emtites/users/users.entity';
 import { AuthService } from 'libs/auth';
 import { RequestWidth } from 'types/express.extends';
@@ -20,9 +20,10 @@ export class UsersService {
     try {
       let result = await this.usersRepository.save({ username, password, pin_yin });
       return { status: true, statusCode: 200, message: '注册成功', data: result };
-    } catch (e) {
+    } catch (err) {
       let message = '';
-      switch (e.errno) {
+      let statusCode = 400;
+      switch (err.errno) {
         case 1062:
           message = '用户名已存在';
           break;
@@ -30,33 +31,21 @@ export class UsersService {
           message = '缺少必填字段';
           break;
         default:
-          message = '未知错误';
+          message = '服务错误';
+          statusCode = 500;
           break;
       }
-      return { status: false, statusCode: 400, message, data: {} };
+      throw new HttpException({ data: err, statusCode, status: false, message }, statusCode);
     }
   }
   async login({ username, password }: CreateUsersBaseDto): Promise<ReturnBody<CreateUsersBaseDto | {}>> {
-    let validate = [
-      { value: username, key: '用户名' },
-      { value: password, key: '密码' }
-    ];
-    for (let item of validate) {
-      if (!item.value) {
-        return { status: false, statusCode: 400, message: item.key + '是必须的', data: {} };
-      }
+    let result = await this.usersRepository.findOne({ username, password });
+    if (result) {
+      Reflect.deleteProperty(result, 'password');
+      let token = this.authService.certificate({ username: result.username, sub: result.id });
+      return { status: true, statusCode: 200, message: '登录成功', data: result, token };
     }
-    try {
-      let result = await this.usersRepository.findOne({ username, password });
-      if (result) {
-        Reflect.deleteProperty(result, 'password');
-        let token = this.authService.certificate({ username: result.username, sub: result.id });
-        return { status: true, statusCode: 200, message: '登录成功', data: result, token };
-      }
-      return { status: false, statusCode: 400, message: '用户名或密码错误', data: {} };
-    } catch (error) {
-      return { status: true, statusCode: 400, message: '登录失败', data: {} };
-    }
+    throw new HttpException({ statusCode: 400, status: false, message: '用户名或密码错误' }, 400);
   }
   async getUserInfo(id: number, req: RequestWidth): Promise<ReturnBody<Users | {}>> {
     id = id || req.user.sub;
@@ -67,9 +56,9 @@ export class UsersService {
         Reflect.deleteProperty(result, 'update_at');
         return { statusCode: 200, status: true, message: '获取成功', data: result };
       }
-      return { statusCode: 403, status: false, message: '查无此人', data: {} };
+      throw new HttpException({ statusCode: 403, status: false, message: '查无此人' }, 403);
     } catch (err) {
-      return { statusCode: 400, status: false, message: '查找失败, 请重试', data: {} };
+      throw new HttpException({ data: err, statusCode: 400, status: false, message: '获取信息失败, 请重试' }, 400);
     }
   }
   async setUserInfo(id: number, query: SetUserInfoDto): Promise<ReturnBody<Users | {}>> {
@@ -79,11 +68,11 @@ export class UsersService {
       Reflect.deleteProperty(result, 'password');
       return { statusCode: 200, status: true, message: '修改成功', data: result };
     } catch (e) {
-      let message = '修改失败';
+      let message = '修改失败, 请重试';
       if (e.errno === 1062) {
         message = '用户名已存在';
       }
-      return { statusCode: 400, status: false, message, data: {} };
+      throw new HttpException({ statusCode: 400, status: false, message }, 400);
     }
   }
 }
