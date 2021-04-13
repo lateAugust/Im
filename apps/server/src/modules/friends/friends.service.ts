@@ -244,6 +244,14 @@ export class FriendsService {
   async auditApply(query: FriendsAuditDto, id: number, user_id: number): Promise<ReturnBody<Proposers | Friends>> {
     let result: Friends | Proposers;
     let { apply_status, apply_id, message, proposers_id, apply_user } = query;
+    try {
+      let checkAdd = await this.proposersRepository.findOne({ id });
+      if (checkAdd.apply_status !== 'underReview') {
+        throw new HttpException({ status: false, statusCode: 403, data: {}, message: '已添加过了' }, 403);
+      }
+    } catch (err) {
+      throw new HttpException({ status: false, statusCode: 500, data: err, message: '服务器错误' }, 500);
+    }
     let publicId = sortReturnString(apply_id, user_id);
     let currentUser = await this.usersRepository.findOne({ id: user_id });
     let notificationContent = currentUser.nickname || currentUser.username;
