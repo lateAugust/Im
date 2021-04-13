@@ -37,6 +37,7 @@
             "type": "object",
             "properties": {
               "id": { "type": "number", "description": "已申请列表id" },
+              "target_id": { "type": "number", "description": "申请方的id" },
               "message": { "type": "string", "description": "附加信息" },
               "apply_status": { "type": "string", "description": "申请状态" }
             },

@@ -14,15 +14,14 @@
             "type": "object",
             "properties": {
               "id": { "type": "number", "description": "用户id" },
+              "public_id": { "type": "string", "description": "双方id" },
               "agree_id": { "type": "number", "description": "同意用户id" },
               "apply_id": { "type": "number", "description": "申请用户id" },
-              "contact_id": { "type": "number", "description": "用户id1" },
-              "relation_id": { "type": "number", "description": "用户id2" },
               "create_at": { "type": "string", "description": "创建时间" },
               "update_at": { "type": "string", "description": "更新时间" }
             },
             "description": "朋友列表信息",
-            "required": ["id", "agree_id", "apply_id", "contact_id", "relation_id", "create_at", "update_at"]
+            "required": ["id", "agree_id", "apply_id", "create_at", "update_at"]
           },
           "user": {
             "type": "object",

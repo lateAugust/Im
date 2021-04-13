@@ -2,12 +2,11 @@
   "type": "object",
   "title": "empty object",
   "properties": {
-    "relation_id": { "type": "number", "description": "申请方的用户id" },
-    "contact_id": { "type": "number", "description": "当前登录用户id" },
+    "apply_id": { "type": "number", "description": "申请方的用户id" },
     "proposers_id": { "type": "number", "description": "当前列表id" },
     "apply_status": { "type": "string", "description": "状态(reject拒绝,agreement同意)" },
     "message": { "type": "string", "description": "只有拒绝时需要添加附加信息" },
-    "relation_user": {
+    "apply_user": {
       "type": "object",
       "properties": {
         "id": { "type": "number", "description": "用户id" },
@@ -19,20 +18,6 @@
         "avatar": { "type": "string", "description": "头像" }
       },
       "description": "申请方的用户信息",
-      "required": ["id", "username", "pin_yin"]
-    },
-    "contact_user": {
-      "type": "object",
-      "properties": {
-        "id": { "type": "number", "description": "用户id" },
-        "username": { "type": "string", "description": "用户名" },
-        "pin_yin": { "type": "string", "description": "用户名拼音" },
-        "nickname": { "type": "string", "description": "昵称" },
-        "age": { "type": "number", "description": "年龄" },
-        "gender": { "type": "string", "description": "女,男,保密" },
-        "avatar": { "type": "string", "description": "头像" }
-      },
-      "description": "当前登录用户",
       "required": ["id", "username", "pin_yin"]
     }
   },

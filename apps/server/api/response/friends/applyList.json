@@ -7,7 +7,6 @@
     "message": { "type": "string", "description": "操作提示语(获取成功|获取失败)" },
     "data": {
       "type": "array",
-
       "items": {
         "type": "object",
         "properties": {

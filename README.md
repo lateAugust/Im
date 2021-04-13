@@ -72,6 +72,7 @@ websocket.onopen = function() {
         // data.message_id 消息记录id
         // data.update_at 消息记录更新时间
         // data.create_at 消息记录创建时间
+        // data.(send|receive)_user  接受和发送的基本用户信息  在验证消息时候出现
     })
 }
 ```

@@ -9,105 +9,29 @@
       "type": "object",
       "properties": {
         "id": { "type": "number", "description": "当前数据id" },
-        "ids": { "type": "string", "description": "建立关系用户id拼接" },
+        "public_id": { "type": "string", "description": "建立关系用户id拼接" },
         "apply_id": { "type": "number", "description": "申请方用户id" },
         "agree_id": { "type": "number", "description": "同意方用户id" },
-        "relation_id": { "type": "number", "description": "用户1 id" },
-        "contact_id": { "type": "number", "description": "用户2 id" },
-        "apply_status": { "type": "string", "description": "状态(underReview审核中,reject拒绝,agreement同意)" },
-        "relation_user": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "number", "description": "用户id" },
-            "username": { "type": "string", "description": "用户名" },
-            "pin_yin": { "type": "string", "description": "用户名拼音" },
-            "nickname": { "type": "string", "description": "昵称" },
-            "age": { "type": "number", "description": "年龄" },
-            "gender": { "type": "string", "description": "女,男,保密" },
-            "avatar": { "type": "string", "description": "头像" }
-          },
-          "description": "申请的用户信息(当前登录用户)",
-          "required": ["id", "username"]
-        },
-        "contact_user": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "number", "description": "用户id" },
-            "username": { "type": "string", "description": "用户名" },
-            "pin_yin": { "type": "string", "description": "用户名拼音" },
-            "nickname": { "type": "string", "description": "昵称" },
-            "age": { "type": "number", "description": "年龄" },
-            "gender": { "type": "string", "description": "女,男,保密" },
-            "avatar": { "type": "string", "description": "头像" }
-          },
-          "description": "申请方用户信息",
-          "required": ["id", "username"]
-        },
         "create_at": { "type": "string", "description": "创建时间" },
         "update_at": { "type": "string", "description": "更新时间" }
       },
       "description": "同意返回信息",
-      "required": [
-        "id",
-        "relation_id",
-        "contact_id",
-        "apply_status",
-        "relation_user",
-        "contact_user",
-        "create_at",
-        "update_at"
-      ]
+      "required": ["id", "public_id", "apply_id", "agree_id", "create_at", "update_at"]
     },
     "data(reject)": {
       "type": "object",
       "properties": {
         "id": { "type": "number", "description": "id" },
+        "public_id": { "type": "number", "description": "双方id" },
         "apply_id": { "type": "number", "description": "申请方用户id" },
         "friend_id": { "type": "number", "description": "friend_id, 朋友列表id, 该接口返回null" },
         "target_id": { "type": "number", "description": "要申请的用户id(也就是当前登录的id)" },
         "apply_status": { "type": "string", "description": "reject拒绝" },
         "message": { "type": "string", "description": "附加消息" },
-        "target_user": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "number", "description": "用户id" },
-            "username": { "type": "string", "description": "用户名" },
-            "pin_yin": { "type": "string", "description": "用户名拼音" },
-            "nickname": { "type": "string", "description": "昵称" },
-            "age": { "type": "number", "description": "年龄" },
-            "gender": { "type": "string", "description": "女,男,保密" },
-            "avatar": { "type": "string", "description": "头像" }
-          },
-          "description": "申请的用户信息(当前登录用户)",
-          "required": ["id", "username"]
-        },
-        "apply_user": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "number", "description": "用户id" },
-            "username": { "type": "string", "description": "用户名" },
-            "pin_yin": { "type": "string", "description": "用户名拼音" },
-            "nickname": { "type": "string", "description": "昵称" },
-            "age": { "type": "number", "description": "年龄" },
-            "gender": { "type": "string", "description": "女,男,保密" },
-            "avatar": { "type": "string", "description": "头像" }
-          },
-          "description": "申请方用户信息",
-          "required": ["id", "username"]
-        },
         "create_at": { "type": "string", "description": "创建时间" },
         "update_at": { "type": "string", "description": "更新时间" }
       },
-      "required": [
-        "id",
-        "apply_id",
-        "target_id",
-        "apply_status",
-        "target_user",
-        "apply_user",
-        "create_at",
-        "update_at"
-      ],
+      "required": ["id", "apply_id", "target_id", "apply_status", "create_at", "update_at"],
       "description": "拒绝返回信息"
     }
   },

@@ -25,7 +25,10 @@
             "nickname": { "type": "string", "description": "昵称" },
             "age": { "type": "number", "description": "年龄" },
             "gender": { "type": "string", "description": "性别" },
-            "avatar": { "type": "string", "description": "头像" }
+            "avatar": { "type": "string", "description": "头像" },
+            "address": { "type": "string", "description": "地址" },
+            "mobile": { "type": "string", "description": "手机号码" },
+            "email": { "type": "string", "description": "邮箱" }
           },
           "description": "查询的用户信息",
           "required": ["id", "username", "pin_yin"]
@@ -34,6 +37,7 @@
           "type": "object",
           "properties": {
             "id": { "type": "number", "description": "对应的数据的id" },
+            "target_id": { "type": "number", "description": "申请方的id" },
             "message": { "type": "string", "description": "附加信息" },
             "apply_status": { "type": "string", "description": "申请状态" }
           },
